@@ -1,0 +1,10 @@
+/**
+ * Print styles — owned by A, week 3.
+ *
+ * Invoices and purchase orders get printed. Imported by the layouts that need
+ * it, not globally.
+ */
+
+@media print {
+  /* TODO(A): hide the app shell, drop backgrounds, force black-on-white. */
+}
