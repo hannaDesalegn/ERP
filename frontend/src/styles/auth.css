@@ -1,0 +1,89 @@
+/**
+ * Auth-screen styling — owned by A.
+ *
+ * The two things Tailwind utilities can't express cleanly: a real text stroke,
+ * and an entrance sequence that switches itself off under reduced motion.
+ * Imported by AuthLayout and used nowhere else, so none of it can leak into a
+ * module page.
+ */
+
+/* The divide between the two halves is a single convex arc, not a straight
+   line: the ink panel bulges into the light one. It's an ellipse clip rather
+   than an SVG because the shape has to track the panel's own box at every
+   viewport width, and a clip-path does that for free.
+
+   Reading of the numbers: `ellipse(100% 140% at 0% 50%)` puts the ellipse
+   centre on the left edge at mid-height, so the right edge reaches the panel's
+   full width at the middle and retreats to ~93.4% at top and bottom — a bulge
+   of ~6.6% of the panel width. That is the whole effect; anything deeper starts
+   reading as decoration rather than architecture.
+
+   The panel is widened to 59% so the *flat* part of the arc lands on the
+   intended 55% split and the bulge is the surplus.
+
+   Below 900px the same move rotates: the banner bulges downward into the form
+   instead of rightward. Same gesture, same shallowness, no second idea. */
+.auth-poster {
+  clip-path: ellipse(140% 100% at 50% 0%);
+}
+
+@media (min-width: 900px) {
+  .auth-poster {
+    clip-path: ellipse(100% 140% at 0% 50%);
+  }
+}
+
+/* One very quiet light source, top-left. Enough that the panel doesn't read as
+   flat black under a poster headline; not enough to become a gradient hero. */
+.auth-poster::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    75% 55% at 10% 0%,
+    rgba(255, 255, 255, 0.075),
+    transparent 68%
+  );
+  pointer-events: none;
+}
+
+/* The outlined headline line is a real stroke, not a low-opacity fill, so it
+   keeps a hard edge at display sizes. The stroke scales with the viewport for
+   the same reason the type does — a fixed 2px looks heavy at 3rem and thin at
+   10rem. The @supports guard matters: without it, a browser that ignores
+   -webkit-text-stroke would render transparent text on black, i.e. nothing. */
+.auth-outline {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+@supports (-webkit-text-stroke: 1px white) {
+  .auth-outline {
+    color: transparent;
+    -webkit-text-stroke: clamp(1px, 0.14vw, 2.5px) rgba(255, 255, 255, 0.62);
+  }
+}
+
+/* Staggered entrance. Each element sets its own delay inline; the longest is
+   310ms, so the whole sequence is done at 590ms.
+
+   Under `prefers-reduced-motion: reduce` this block simply doesn't apply — the
+   elements are never hidden in the first place, so there is nothing to fade in
+   and nothing to go wrong. That is stricter than the global rule in
+   tailwind.css, which only shortens durations. */
+@media (prefers-reduced-motion: no-preference) {
+  .auth-rise {
+    animation: auth-rise 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+
+@keyframes auth-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

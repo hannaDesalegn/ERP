@@ -1,10 +1,12 @@
 /**
  * Route tree — owned by A.
  *
- * Everything renders inside AppShell, including 403 and 404 — losing the nav
- * when you hit a bad URL leaves the user stranded.
+ * Every signed-in page renders inside AppShell, including 403 and 404 — losing
+ * the nav when you hit a bad URL leaves the user stranded. /login is the one
+ * exception: it is a full-viewport screen with its own layout, so it sits
+ * outside the shell rather than inside it with the chrome hidden.
  *
- * TODO(A), week 2: wrap the shell in ProtectedRoute, and add /login outside it.
+ * TODO(A), week 2: wrap the shell in ProtectedRoute.
  */
 
 import { createBrowserRouter, Navigate } from 'react-router-dom';
@@ -12,11 +14,15 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { AppShell } from '@/layouts/AppShell';
 import { ForbiddenPage } from '@/pages/ForbiddenPage';
 import { KitchenSinkPage } from '@/pages/KitchenSinkPage';
+import { LoginPage } from '@/pages/LoginPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 
 import { moduleRoutes } from './registry';
 
 export const router = createBrowserRouter([
+  // Outside the shell, deliberately. Must stay above the shell route.
+  { path: '/login', element: <LoginPage /> },
+
   {
     element: <AppShell />,
     children: [

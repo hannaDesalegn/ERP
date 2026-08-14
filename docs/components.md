@@ -289,11 +289,21 @@ hex value anywhere in a module.
 --color-primary      --color-primary-hover   --color-primary-fg
 --color-success --color-warning --color-danger --color-info   (+ -bg variants)
 
+--color-ink   --color-ink-muted   --color-bone   ← auth screen only
+
 --radius-sm 4px   --radius-md 6px   --radius-lg 10px
 --space-*         4px scale
 --font-sans       Inter
 --font-mono       JetBrains Mono   ← SKUs, order numbers, IDs, quantities
+--font-display    Anton            ← auth screen only
 ```
+
+The three `ink`/`bone` colours and `--font-display` belong to `AuthLayout` and
+nothing else. The login screen is the app's one loud surface; a poster face, a
+near-black panel, or a tinted ground turning up on a list page is a bug, not a
+flourish. `--color-surface` stays pure white so dense tables read on a neutral
+ground — `--color-bone` is the login screen's off-white and does not migrate
+inward.
 
 Order numbers, SKUs, and codes render in the mono face. In a dense table it makes
 `SO-2026-0042` scannable in a way a proportional font does not, and it is the one
