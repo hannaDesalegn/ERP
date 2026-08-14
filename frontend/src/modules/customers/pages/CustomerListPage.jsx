@@ -95,10 +95,12 @@ export function CustomerListPage() {
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-4 p-6">
+      {/* No `breadcrumbs` prop — the shell's topbar derives the trail from the
+          URL, so passing them here would render two of them. PageHeader still
+          accepts the prop for any page rendered outside the shell. */}
       <PageHeader
         title="Customers"
         description="Everyone you invoice."
-        breadcrumbs={[{ label: 'Customers', path: '/customers' }]}
         actions={
           <Button icon={Plus} onClick={() => navigate('/customers/new')}>
             Add customer

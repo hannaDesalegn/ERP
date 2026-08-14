@@ -14,11 +14,14 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   Button,
+  ConfirmDialog,
   DataTable,
   FormField,
   FormSelect,
+  Modal,
   PageHeader,
   StatusBadge,
+  toast,
 } from '@/components/ui';
 import { AuthProvider } from '@/lib/auth';
 import { formatMoney } from '@/lib/format';
@@ -222,6 +225,22 @@ export function KitchenSinkPage() {
     }, 1200);
   };
 
+  // Modal / ConfirmDialog
+  const [modalOpen, setModalOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const confirmDelete = () => {
+    setDeleting(true);
+    later(() => {
+      setDeleting(false);
+      setConfirmOpen(false);
+      // Same verb as the button that caused it: "Delete" → "Deleted".
+      toast.success('Deleted Acme Trading PLC');
+      setLastAction('Customer deleted');
+    }, 1500);
+  };
+
   // DataTable
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('-balance');
@@ -291,10 +310,6 @@ export function KitchenSinkPage() {
       <PageHeader
         title="Kitchen sink"
         description="Temporary reference page. Every kit v0 component, wired to real state."
-        breadcrumbs={[
-          { label: 'Home', path: '/' },
-          { label: 'Kitchen sink', path: '/kitchen-sink' },
-        ]}
         actions={
           <>
             <Button
@@ -567,6 +582,122 @@ export function KitchenSinkPage() {
             density="comfortable"
           />
         </AuthProvider>
+      </Section>
+
+      <Section title="Modal">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="secondary" onClick={() => setModalOpen(true)}>
+            Open modal
+          </Button>
+          <span className="text-xs text-text-muted">
+            Tab cycles inside the dialog, Escape closes it, and focus returns to
+            the button that opened it.
+          </span>
+        </div>
+
+        <Modal
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+          title="Edit customer"
+          description="Focus is trapped here until the dialog closes."
+          size="md"
+          footer={
+            <>
+              <Button variant="secondary" onClick={() => setModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  setModalOpen(false);
+                  toast.success('Saved Acme Trading PLC');
+                }}
+              >
+                Save
+              </Button>
+            </>
+          }
+        >
+          <div className="flex flex-col gap-4">
+            <p className="text-text-muted">
+              Two focusable fields, so tab-cycling is visible.
+            </p>
+            <FormField
+              label="Customer name"
+              name="modalName"
+              defaultValue="Acme Trading PLC"
+            />
+            <FormField label="Email" name="modalEmail" type="email" />
+          </div>
+        </Modal>
+      </Section>
+
+      <Section title="ConfirmDialog">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="destructive" onClick={() => setConfirmOpen(true)}>
+            Delete customer
+          </Button>
+          <span className="text-xs text-text-muted">
+            Confirming runs a fake 1.5s delete — the dialog stays open and
+            locked while it is in flight, then toasts.
+          </span>
+        </div>
+
+        <ConfirmDialog
+          open={confirmOpen}
+          onClose={() => setConfirmOpen(false)}
+          onConfirm={confirmDelete}
+          title="Delete customer?"
+          description="This archives the customer. Existing orders are unaffected."
+          confirmLabel="Delete"
+          variant="destructive"
+          loading={deleting}
+        />
+      </Section>
+
+      <Section title="Toast">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="secondary"
+            onClick={() => toast.success('Customer saved')}
+          >
+            Success
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() =>
+              toast.error('Could not save customer', {
+                description: 'The code CUS-0001 is already in use.',
+              })
+            }
+          >
+            Error
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => toast.warning('Credit limit exceeded')}
+          >
+            Warning
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => toast.info('Export queued')}
+          >
+            Info
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() =>
+              toast.info('This one stays until dismissed', { duration: 0 })
+            }
+          >
+            Sticky
+          </Button>
+        </div>
+        <p className="text-xs text-text-muted">
+          Imperative — no provider wiring in module code. A single Toaster is
+          mounted in providers.jsx. Toasts auto-dismiss after 5s unless{' '}
+          <span className="font-mono">duration: 0</span>.
+        </p>
       </Section>
 
       <Section title="DataTable — empty state" fixed>

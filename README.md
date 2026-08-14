@@ -171,3 +171,89 @@ leader. Vague briefs produce specific feedback once someone sees something real.
 2. `docs/api-contract.md` — endpoint shapes, response envelope, error format.
 3. `docs/components.md` — locked prop signatures for the shared kit.
 4. `docs/security-notes.md` — what the frontend can and cannot enforce.
+
+---
+
+## 8. Known gaps
+
+Things that are deliberately unfinished. Listed here so nobody reports them as
+bugs, and so none of them reach the demo by being quietly forgotten. Anything
+that must be gone before the demo says so.
+
+### Global search (topbar)
+
+Disabled, with the placeholder "Global search — coming soon".
+
+**Blocked on the backend, not on us.** Searching `acme` must return customers,
+orders, invoices, products, suppliers and purchase orders in one ranked list,
+scoped to what the user may see. That needs a single endpoint spanning every
+module — `GET /api/search?q=`. MSW cannot fake it usefully: stitching per-module
+mock arrays together gives a result set that looks right and ranks wrong, and we
+would build the UI against the wrong shape.
+
+Post-backend item. Not scheduled, no owner yet.
+
+### Real auth — **must be gone before the demo**
+
+`src/app/providers.jsx` contains a `STUB_USER` constant holding the full
+permission catalogue, passed to `AuthProvider` as `initialUser`.
+
+It exists because `<Can>` filters the sidebar: with no user, every nav entry is
+hidden and the app looks empty. It is not a login and it is not a security
+control — it is a placeholder so the shell is usable before week 2.
+
+**Week 2 (A):** delete the constant and the `initialUser` prop, and boot from
+`/auth/refresh` then `/auth/me` as specified in `docs/api-contract.md` §3.
+Nothing else changes — `useAuth`, `useCan` and `<Can>` already read from the
+provider.
+
+Related: the user menu's Log out clears auth state and navigates to `/login`,
+which does not exist yet, so it lands on the 404. That resolves itself when the
+login screen ships.
+
+### `format.js` whitespace lint errors
+
+`npm run lint` reports two `no-irregular-whitespace` errors in
+`src/lib/format.js`. Two regex character classes contain literal non-breaking
+space characters (U+00A0) where an escape sequence should be.
+
+Runtime behaviour is correct and the build is unaffected — `formatMoney` strips
+the non-breaking spaces Intl inserts, which is what those regexes are for. But
+**lint is red**, so CI cannot gate on it until this is fixed. One-line change.
+
+### No husky pre-commit hook
+
+`husky` is installed and `core.hooksPath` points at `frontend/.husky`, and
+`lint-staged` is configured in `frontend/package.json` — but there is no
+`frontend/.husky/pre-commit`, so **nothing runs on commit**. Unformatted code
+and lint errors can land.
+
+The hook needs one line, `cd frontend && npx lint-staged`; the `cd` is required
+because git runs hooks from the repo root and the package lives in `frontend/`.
+Alternatively a root `package.json` could own husky instead.
+
+### Outstanding `npm audit` advisories
+
+`docs/security-notes.md` §5 requires `npm audit` clean at high and above before
+the demo. It is not. Every remaining fix is a major upgrade that contradicts the
+stack table in §1, so each is a group decision.
+
+| Package | Severity | Reach | Only fix |
+|---|---|---|---|
+| `vitest` | critical | dev only; needs the Vitest UI server listening, which we do not use | Vitest 3+ (pulls Vite 6+) |
+| `vite` | high | dev server only; two of the three are Windows-specific (NTLMv2 hash disclosure via UNC paths, `server.fs.deny` bypass) — and we are all on Windows | Vite 8 |
+| `react-router` | moderate | **ships in the production bundle** | React Router 7 |
+
+Take the React Router one first. It is an open redirect via backslash in `<Link>`
+and `useNavigate`, and it lands squarely on the `/login?next=<path>` redirect in
+`docs/api-contract.md` §3. There is no patched 6.x — we are on 6.30.4, the
+latest v6, and it is still in range.
+
+### Temporary code to delete before the demo
+
+- `src/pages/KitchenSinkPage.jsx` and its `/kitchen-sink` route — the kit
+  reference page.
+- `STUB_USER` in `src/app/providers.jsx`, as above.
+- The `demo-server-error` and `demo-validation-error` handlers in
+  `src/modules/customers/handlers.js` are **not** in this list. They are how
+  error states get tested and they stay until the real backend does.
