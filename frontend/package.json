@@ -31,7 +31,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.54.1",
-    "react-router-dom": "^6.28.0",
+    "react-router-dom": "^6.30.4",
     "zod": "^3.24.1"
   },
   "devDependencies": {
@@ -64,5 +64,9 @@
     "workerDirectory": [
       "public"
     ]
+  },
+  "allowScripts": {
+    "esbuild@0.21.5": true,
+    "msw@2.15.0": true
   }
 }

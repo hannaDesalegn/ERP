@@ -1,13 +1,21 @@
 /**
  * Route tree — owned by A.
  *
- * Assembled from the module registry plus A's own pages (Dashboard, Settings,
- * Users, Login, 404, 403). Protected routes wrap in ProtectedRoute from
- * `@/lib/auth`.
+ * v0 only carries the temporary kitchen-sink page. The real tree (AppShell,
+ * ProtectedRoute, module routes from the registry, 404/403) is week-2 work.
  */
 
-// TODO(A): build the route tree.
-// import { createBrowserRouter } from 'react-router-dom';
-// import { moduleRoutes } from './registry';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 
-export const router = null;
+import { KitchenSinkPage } from '@/pages/KitchenSinkPage';
+
+import { moduleRoutes } from './registry';
+
+export const router = createBrowserRouter([
+  { path: '/', element: <Navigate to="/kitchen-sink" replace /> },
+
+  // TEMPORARY — delete along with the page before the demo.
+  { path: '/kitchen-sink', element: <KitchenSinkPage /> },
+
+  ...moduleRoutes,
+]);

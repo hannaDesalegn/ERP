@@ -1,7 +1,7 @@
 /**
- * Tailwind reads every colour, radius and spacing value from the CSS custom
- * properties in `src/styles/tokens.css`. Modules use the Tailwind class
- * (`bg-surface`, `text-muted`); nobody hardcodes a hex value.
+ * Every colour, radius and font value comes from the CSS custom properties in
+ * `src/styles/tokens.css`. Modules use the Tailwind class (`bg-surface`,
+ * `text-muted`); nobody hardcodes a hex value.
  * See docs/components.md § Design tokens.
  *
  * @type {import('tailwindcss').Config}
@@ -49,10 +49,11 @@ export default {
         sans: 'var(--font-sans)',
         mono: 'var(--font-mono)',
       },
-      spacing: {
-        // Row heights from docs/components.md § Design tokens.
-        row: '40px', // density="comfortable"
-        'row-compact': '32px', // density="compact"
+      // Row heights from docs/components.md § Design tokens: 40px comfortable,
+      // 32px compact. Only DataTable uses these.
+      height: {
+        row: '40px',
+        'row-compact': '32px',
       },
     },
   },

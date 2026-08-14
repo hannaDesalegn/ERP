@@ -1,36 +1,37 @@
 /**
  * Design tokens — owned by A.
  *
- * The token *names* are locked by docs/components.md. The values below are a
- * provisional neutral set so the kit has something to render against; A
- * finalises them in week 1. Modules never hardcode a hex value — they use the
- * Tailwind class that maps to the token (see tailwind.config.js).
+ * This is exactly the token list in docs/components.md § Design tokens. The
+ * names are locked; the values are A's to tune. Modules never hardcode a hex
+ * value — they use the Tailwind class that maps to the token
+ * (see tailwind.config.js).
  */
 
 :root {
   /* Surfaces */
-  --color-bg: #f8fafc;
+  --color-bg: #f6f7f9;
   --color-surface: #ffffff;
-  --color-border: #e2e8f0;
+  --color-border: #dfe3e8;
 
   /* Text */
-  --color-text: #0f172a;
-  --color-text-muted: #64748b;
+  --color-text: #16202c;
+  --color-text-muted: #5b6775;
 
   /* Brand */
-  --color-primary: #1d4ed8;
-  --color-primary-hover: #1e40af;
+  --color-primary: #1c5fd6;
+  --color-primary-hover: #164ba9;
   --color-primary-fg: #ffffff;
 
-  /* Status — pairs with StatusBadge variant="auto" */
-  --color-success: #15803d;
-  --color-success-bg: #dcfce7;
-  --color-warning: #b45309;
-  --color-warning-bg: #fef3c7;
-  --color-danger: #b91c1c;
-  --color-danger-bg: #fee2e2;
-  --color-info: #0369a1;
-  --color-info-bg: #e0f2fe;
+  /* Status, each with a -bg variant. Pairs with StatusBadge variant="auto".
+     Foregrounds clear 4.5:1 against their own -bg. */
+  --color-success: #1a6c3d;
+  --color-success-bg: #e3f5e9;
+  --color-warning: #8a5306;
+  --color-warning-bg: #fdf1dc;
+  --color-danger: #b3261e;
+  --color-danger-bg: #fce9e7;
+  --color-info: #0f5f8a;
+  --color-info-bg: #e2f2fa;
 
   /* Radius */
   --radius-sm: 4px;
@@ -48,9 +49,12 @@
   --space-10: 40px;
   --space-12: 48px;
 
-  /* Type. Mono carries information here: SKUs, order numbers, IDs, quantities. */
+  /* Type. System fallbacks only — we do not add a font CDN, that is a
+     third-party origin this app does not need. Mono carries information:
+     SKUs, order numbers, IDs, quantities. */
   --font-sans:
-    Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
+    sans-serif;
   --font-mono:
     'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
