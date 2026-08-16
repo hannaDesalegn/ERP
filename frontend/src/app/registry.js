@@ -13,15 +13,45 @@ import {
   customerNav,
   customerRoutes,
 } from '@/modules/customers';
+import {
+  productHandlers,
+  productNav,
+  productRoutes,
+} from '@/modules/products';
+import {
+  purchasingHandlers,
+  purchasingNav,
+  purchasingRoutes,
+} from '@/modules/purchasing';
+import {
+  supplierHandlers,
+  supplierNav,
+  supplierRoutes,
+} from '@/modules/suppliers';
 
 // TODO(A): one import line per module as B and C land them —
-// orders, invoices (B); products, suppliers, purchasing (C).
+// orders, invoices (B). C's three (products, suppliers, purchasing) are in.
 
 /** @type {import('react-router-dom').RouteObject[]} */
-export const moduleRoutes = [...customerRoutes];
+export const moduleRoutes = [
+  ...customerRoutes,
+  ...productRoutes,
+  ...supplierRoutes,
+  ...purchasingRoutes,
+];
 
 /** @type {{ label: string, icon: unknown, path: string, permission: string }[]} */
-export const moduleNav = [customerNav];
+export const moduleNav = [
+  customerNav,
+  productNav,
+  supplierNav,
+  purchasingNav,
+];
 
 /** @type {unknown[]} MSW request handlers */
-export const moduleHandlers = [...customerHandlers];
+export const moduleHandlers = [
+  ...customerHandlers,
+  ...productHandlers,
+  ...supplierHandlers,
+  ...purchasingHandlers,
+];
