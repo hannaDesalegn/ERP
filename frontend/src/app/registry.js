@@ -13,15 +13,45 @@ import {
   customerNav,
   customerRoutes,
 } from '@/modules/customers';
+import { orderHandlers, orderNav, orderRoutes } from '@/modules/orders';
 
-// TODO(A): one import line per module as B and C land them —
-// orders, invoices (B); products, suppliers, purchasing (C).
+// TODO(B): invoices is held out of the registry — registering it breaks the
+// build. src/modules/invoices/api.js is still the copied customers file: it
+// exports customerKeys/fetchCustomers against RESOURCE = '/customers', but
+// InvoiceListPage.jsx imports { invoiceKeys, fetchInvoices }. Rename the
+// exports and the RESOURCE, then uncomment the import and the three spreads
+// below. index.js and handlers.js are already correct.
+// import {
+//   invoiceHandlers,
+//   invoiceNav,
+//   invoiceRoutes,
+// } from '@/modules/invoices';
+
+// TODO(A): one import line per module as C lands them —
+// products, suppliers, purchasing.
 
 /** @type {import('react-router-dom').RouteObject[]} */
-export const moduleRoutes = [...customerRoutes];
+export const moduleRoutes = [
+  ...customerRoutes,
+  ...orderRoutes,
+  // ...invoiceRoutes,
+];
 
-/** @type {{ label: string, icon: unknown, path: string, permission: string }[]} */
-export const moduleNav = [customerNav];
+/**
+ * Sidebar order, not alphabetical: it follows the business flow a user works
+ * through — customer, then their order, then the invoice for it.
+ *
+ * @type {{ label: string, icon: unknown, path: string, permission: string }[]}
+ */
+export const moduleNav = [
+  customerNav,
+  orderNav,
+  // invoiceNav,
+];
 
 /** @type {unknown[]} MSW request handlers */
-export const moduleHandlers = [...customerHandlers];
+export const moduleHandlers = [
+  ...customerHandlers,
+  ...orderHandlers,
+  // ...invoiceHandlers,
+];
