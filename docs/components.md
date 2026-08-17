@@ -252,7 +252,7 @@ Something went wrong."
 ## Permissions
 
 ```jsx
-import { Can, useCan } from '@/lib/auth';
+import { Can, useCan } from '@/auth/AuthContext';
 
 <Can permission="customers.delete">
   <Button variant="destructive">Delete</Button>

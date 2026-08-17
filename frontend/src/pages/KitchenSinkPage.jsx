@@ -23,15 +23,7 @@ import {
   StatusBadge,
   toast,
 } from '@/components/ui';
-import { AuthProvider } from '@/lib/auth';
 import { formatMoney } from '@/lib/format';
-
-const DEMO_USER = {
-  id: 'usr_01',
-  firstName: 'Demo',
-  lastName: 'Admin',
-  permissions: ['customers.edit', 'customers.delete'],
-};
 
 const CUSTOMERS = [
   {
@@ -522,66 +514,64 @@ export function KitchenSinkPage() {
           </span>
         </div>
 
-        {/* Nested AuthProvider so permission-filtered row actions can be shown
-            before the real auth flow exists. Week-2 work replaces this. */}
-        <AuthProvider initialUser={DEMO_USER}>
-          <DataTable
-            columns={columns}
-            data={tableLoading ? [] : pageRows}
-            loading={tableLoading}
-            page={safePage}
-            perPage={perPage}
-            total={rows.length}
-            onPageChange={setPage}
-            onPerPageChange={(value) => {
-              setPerPage(value);
-              setPage(1);
-            }}
-            sort={sort}
-            onSortChange={setSort}
-            searchable
-            searchValue={search}
-            onSearchChange={(value) => {
-              setSearch(value);
-              setPage(1);
-            }}
-            onRowClick={(row) => setLastAction(`Row opened: ${row.code}`)}
-            rowActions={(row) => [
-              {
-                label: 'Edit',
-                icon: Pencil,
-                permission: 'customers.edit',
-                onClick: () => setLastAction(`Edit ${row.code}`),
-              },
-              {
-                label: 'Delete',
-                icon: Trash,
-                permission: 'customers.delete',
-                destructive: true,
-                onClick: () => setLastAction(`Delete ${row.code}`),
-              },
-              // Hidden: the demo user has no orders.approve.
-              {
-                label: 'Approve',
-                permission: 'orders.approve',
-                onClick: () => {},
-              },
-            ]}
-            selectable
-            selectedIds={selected}
-            onSelectionChange={setSelected}
-            bulkActions={[
-              {
-                label: 'Export selected',
-                onClick: () =>
-                  setLastAction(`Export ${selected.length} selected`),
-              },
-            ]}
-            rowKey="id"
-            stickyHeader
-            density="comfortable"
-          />
-        </AuthProvider>
+        {/* Row actions are filtered by the signed-in user's permissions — sign
+            in as staff and Edit/Delete disappear. */}
+        <DataTable
+          columns={columns}
+          data={tableLoading ? [] : pageRows}
+          loading={tableLoading}
+          page={safePage}
+          perPage={perPage}
+          total={rows.length}
+          onPageChange={setPage}
+          onPerPageChange={(value) => {
+            setPerPage(value);
+            setPage(1);
+          }}
+          sort={sort}
+          onSortChange={setSort}
+          searchable
+          searchValue={search}
+          onSearchChange={(value) => {
+            setSearch(value);
+            setPage(1);
+          }}
+          onRowClick={(row) => setLastAction(`Row opened: ${row.code}`)}
+          rowActions={(row) => [
+            {
+              label: 'Edit',
+              icon: Pencil,
+              permission: 'customers.edit',
+              onClick: () => setLastAction(`Edit ${row.code}`),
+            },
+            {
+              label: 'Delete',
+              icon: Trash,
+              permission: 'customers.delete',
+              destructive: true,
+              onClick: () => setLastAction(`Delete ${row.code}`),
+            },
+            // Hidden: the demo user has no orders.approve.
+            {
+              label: 'Approve',
+              permission: 'orders.approve',
+              onClick: () => {},
+            },
+          ]}
+          selectable
+          selectedIds={selected}
+          onSelectionChange={setSelected}
+          bulkActions={[
+            {
+              label: 'Export selected',
+              onClick: () =>
+                setLastAction(`Export ${selected.length} selected`),
+            },
+          ]}
+          rowKey="id"
+          stickyHeader
+          density="comfortable"
+        />
       </Section>
 
       <Section title="Modal">

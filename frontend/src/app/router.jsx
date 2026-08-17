@@ -5,12 +5,11 @@
  * the nav when you hit a bad URL leaves the user stranded. /login is the one
  * exception: it is a full-viewport screen with its own layout, so it sits
  * outside the shell rather than inside it with the chrome hidden.
- *
- * TODO(A), week 2: wrap the shell in ProtectedRoute.
  */
 
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
+import { ProtectedRoute } from '@/auth/ProtectedRoute';
 import { AppShell } from '@/layouts/AppShell';
 import { ForbiddenPage } from '@/pages/ForbiddenPage';
 import { KitchenSinkPage } from '@/pages/KitchenSinkPage';
@@ -24,7 +23,13 @@ export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
 
   {
-    element: <AppShell />,
+    // Everything below this line requires a signed-in user. 403 and 404 sit
+    // inside it deliberately — losing the nav on a bad URL strands the user.
+    element: (
+      <ProtectedRoute>
+        <AppShell />
+      </ProtectedRoute>
+    ),
     children: [
       // TODO(A), week 3: point this at /dashboard once that page exists.
       { index: true, element: <Navigate to="/customers" replace /> },

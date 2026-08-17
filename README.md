@@ -193,23 +193,47 @@ would build the UI against the wrong shape.
 
 Post-backend item. Not scheduled, no owner yet.
 
-### Real auth — **must be gone before the demo**
+### Real auth — **done, except for session persistence**
 
-`src/app/providers.jsx` contains a `STUB_USER` constant holding the full
-permission catalogue, passed to `AuthProvider` as `initialUser`.
+`STUB_USER` is gone. `src/auth/` now holds the whole flow: `AuthContext.jsx`
+(state, `login`, `logout`, `<Can>`, `useCan`), `ProtectedRoute.jsx` and
+`RequireRole.jsx`. `POST /auth/login`, `GET /auth/me` and `POST /auth/logout`
+are mocked in `src/mocks/authHandlers.js` against three seed accounts —
+`admin@zion.test`, `manager@zion.test`, `staff@zion.test`.
 
-It exists because `<Can>` filters the sidebar: with no user, every nav entry is
-hidden and the app looks empty. It is not a login and it is not a security
-control — it is a placeholder so the shell is usable before week 2.
+The access token lives in React state and nowhere else, so **a page refresh
+signs you out**. That is the documented decision, not a bug
+(`docs/security-notes.md` § Token handling), and it is the one piece still
+outstanding: booting from `POST /auth/refresh` against an httpOnly cookie, as
+specified in `docs/api-contract.md` §3. `isLoading` on the auth context already
+exists for it and `ProtectedRoute` already branches on it, so that work should
+not touch any consumer.
 
-**Week 2 (A):** delete the constant and the `initialUser` prop, and boot from
-`/auth/refresh` then `/auth/me` as specified in `docs/api-contract.md` §3.
-Nothing else changes — `useAuth`, `useCan` and `<Can>` already read from the
-provider.
+`GET /auth/me` is written and correct but currently unreferenced — with no
+persisted token there is nothing to restore on mount. It becomes live with
+refresh.
 
-Related: the user menu's Log out clears auth state and navigates to `/login`,
-which does not exist yet, so it lands on the 404. That resolves itself when the
-login screen ships.
+### "Remember me" — removed pending `/auth/refresh`
+
+The login form had a "Remember me" checkbox. It is gone: the access token lives
+in React state, so nothing survives a page load and the control could not do
+anything. Staying signed in across a refresh is a backend concern — an httpOnly
+refresh cookie and `POST /auth/refresh` (`docs/api-contract.md` §3), not a
+client-side box to tick.
+
+Bring it back when refresh lands, and only if it then changes behaviour.
+
+### 4 tests red — `LoginPage.test.jsx`
+
+All four cases fail with `useAuth must be used inside <AuthProvider>`. The test
+renders `<LoginPage />` bare in a `MemoryRouter`, which was enough when submit
+was a fake 1.2s delay. It now needs an `AuthProvider`, a `QueryClientProvider`
+and MSW, and two of its cases still assert on the removed "Remember me"
+checkbox.
+
+Left red deliberately rather than half-fixed. To be sorted out with the MSW test
+setup — `src/mocks/server.js` via `setupServer`, wired into `src/test/setup.js`,
+plus a render helper that wraps the providers.
 
 ### `format.js` whitespace lint errors
 
@@ -253,7 +277,8 @@ latest v6, and it is still in range.
 
 - `src/pages/KitchenSinkPage.jsx` and its `/kitchen-sink` route — the kit
   reference page.
-- `STUB_USER` in `src/app/providers.jsx`, as above.
+- The seed accounts and plaintext passwords in `src/mocks/authHandlers.js` —
+  they go with the rest of MSW when the real auth service lands.
 - The `demo-server-error` and `demo-validation-error` handlers in
   `src/modules/customers/handlers.js` are **not** in this list. They are how
   error states get tested and they stay until the real backend does.

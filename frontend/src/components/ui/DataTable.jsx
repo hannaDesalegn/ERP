@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
-import { useAuth } from '@/lib/auth';
+import { useAuth } from '@/auth/AuthContext';
 import { cn } from '@/lib/cn';
 
 const PER_PAGE_OPTIONS = [10, 25, 50, 100];

@@ -99,7 +99,10 @@ async function request(path, options = {}) {
     throw new ApiError({
       status: response.status,
       code: payload?.error?.code ?? 'SERVER_ERROR',
-      message: payload?.error?.message ?? 'Something went wrong.',
+      // Auth endpoints answer with a flat { message }; everything else uses
+      // the { error: { code, message } } envelope. Accept both.
+      message:
+        payload?.error?.message ?? payload?.message ?? 'Something went wrong.',
       fields: payload?.error?.fields,
     });
   }

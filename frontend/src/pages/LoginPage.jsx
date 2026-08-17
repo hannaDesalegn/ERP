@@ -8,17 +8,15 @@
  * The form is the kit's FormField and Button, not bespoke inputs. If the login
  * screen needs an input the kit can't render, that's a gap in the kit — the fix
  * goes in components/ui, not here.
- *
- * TODO(A), week 2: replace the fake delay with POST /auth/login, put the access
- * token in memory via AuthProvider, and redirect to the `from` location the
- * route guard stashed. docs/api-contract.md §3, docs/security-notes.md §3.
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 
+import { useAuth } from '@/auth/AuthContext';
 import { Button, FormField } from '@/components/ui';
 import { AuthLayout } from '@/layouts/AuthLayout';
 
@@ -37,7 +35,6 @@ const loginSchema = z.object({
     .min(1, 'Enter your email address.')
     .email('Must be a valid email address.'),
   password: z.string().min(1, 'Enter your password.'),
-  remember: z.boolean(),
 });
 
 /** Entrance delays, ms. The last one starts at 310 and runs 280 — done at 590. */
@@ -45,35 +42,37 @@ const DELAY = {
   heading: 140,
   email: 200,
   password: 250,
-  options: 290,
+  forgot: 290,
   submit: 310,
 };
 
 export function LoginPage() {
+  const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Where ProtectedRoute bounced the user from, or the app root.
+  const from = location.state?.from ?? '/';
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: '', password: '', remember: false },
+    defaultValues: { email: '', password: '' },
   });
 
-  async function onSubmit(_values) {
-    // Stand-in for the real request, so the loading state and the disabled
-    // button are exercised now rather than discovered later.
-    await new Promise((resolve) => {
-      setTimeout(resolve, 1200);
-    });
-    navigate('/', { replace: true });
-  }
+  const loginMutation = useMutation({
+    // login takes one object, not two positional arguments.
+    mutationFn: ({ email, password }) => login({ email, password }),
+    onSuccess: () => navigate(from, { replace: true }),
+  });
 
   return (
     <AuthLayout>
       <form
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={handleSubmit((values) => loginMutation.mutate(values))}
         className="flex flex-col gap-3.5"
         noValidate
       >
@@ -88,6 +87,17 @@ export function LoginPage() {
             Use your work account to continue.
           </p>
         </div>
+
+        {/* Server-side failure. Field-level errors stay on their inputs, and
+            no auth-rise here — this appears long after the entrance runs. */}
+        {loginMutation.isError && (
+          <p
+            role="alert"
+            className="rounded-md border border-danger bg-danger-bg px-3 py-2 text-sm text-danger"
+          >
+            {loginMutation.error.message}
+          </p>
+        )}
 
         {/* The animation and its delay have to sit on the same element, so each
             field gets a wrapper rather than a className on FormField. */}
@@ -121,21 +131,9 @@ export function LoginPage() {
         </div>
 
         <div
-          className="auth-rise flex items-center justify-between gap-3"
-          style={{ animationDelay: `${DELAY.options}ms` }}
+          className="auth-rise flex justify-end"
+          style={{ animationDelay: `${DELAY.forgot}ms` }}
         >
-          {/* TODO(A): swap for the kit's FormCheckbox when it ships — it is on
-              the list in components/ui/index.js. Inline until then; one
-              checkbox is not a reason to fork the kit's input styling. */}
-          <label className="flex items-center gap-2 text-sm text-text">
-            <input
-              type="checkbox"
-              className="h-4 w-4 rounded-sm border-border accent-[color:var(--color-primary)]"
-              {...register('remember')}
-            />
-            Remember me
-          </label>
-
           {/* TODO(A): route exists from week 2; until then this lands on 404. */}
           <Link
             to="/forgot-password"
@@ -149,13 +147,14 @@ export function LoginPage() {
           className="auth-rise"
           style={{ animationDelay: `${DELAY.submit}ms` }}
         >
+          {/* Button treats loading as disabled, so pending blocks a second submit. */}
           <Button
             type="submit"
             size="lg"
-            loading={isSubmitting}
+            loading={loginMutation.isPending}
             className="w-full"
           >
-            {isSubmitting ? 'Signing in…' : 'Sign in'}
+            {loginMutation.isPending ? 'Signing in…' : 'Sign in'}
           </Button>
         </div>
       </form>

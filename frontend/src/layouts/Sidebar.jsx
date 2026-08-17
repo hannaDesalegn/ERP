@@ -14,7 +14,7 @@ import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 
 import { moduleNav } from '@/app/registry';
-import { Can } from '@/lib/auth';
+import { Can } from '@/auth/AuthContext';
 import { cn } from '@/lib/cn';
 
 export function Sidebar({
