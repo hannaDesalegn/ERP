@@ -274,6 +274,25 @@ CRUD functions. Then uncomment the import and the three spreads in the registry.
 
 Until that lands, invoices has no route, no nav entry, and no mock handlers.
 
+### DataTable still has its own inline skeletons
+
+`<Skeleton>` shipped, but `DataTable` does not use it. Two places still build
+their own placeholders inline:
+
+- the table body row, `h-3 w-full animate-pulse rounded-sm bg-bg` (~line 387)
+- the `MobileCards` card, `h-24 animate-pulse rounded-md ...` (~line 469)
+
+Both differ from the component in ways that matter. They use plain
+`animate-pulse`, which the global rule in `styles/tailwind.css` only clamps to
+`0.01ms` — the animation is frozen rather than absent, where `<Skeleton>` uses
+`motion-safe:` and removes it outright under `prefers-reduced-motion`. The row
+bar is also `bg-bg`, which only reads against `bg-surface`, where the component
+uses `bg-border` and works on either ground.
+
+Left as a deliberate follow-up rather than folded into the component work:
+swapping them changes the loading appearance of every list page in the app, so
+it deserves its own change and its own look.
+
 ### `format.js` whitespace lint errors
 
 `npm run lint` reports two `no-irregular-whitespace` errors in

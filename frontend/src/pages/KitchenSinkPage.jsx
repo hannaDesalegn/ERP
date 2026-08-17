@@ -9,17 +9,19 @@
  * All data is obviously fake, per docs/security-notes.md § Fake data only.
  */
 
-import { Download, Pencil, Plus, RotateCw, Trash } from 'lucide-react';
+import { Download, Pencil, Plus, RotateCw, Trash, Users } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   Button,
   ConfirmDialog,
   DataTable,
+  EmptyState,
   FormField,
   FormSelect,
   Modal,
   PageHeader,
+  Skeleton,
   StatusBadge,
   toast,
 } from '@/components/ui';
@@ -160,6 +162,16 @@ function Section({ title, fixed = false, children }) {
       </div>
       {children}
     </section>
+  );
+}
+
+/** Labelled cell for the Skeleton grid, so each variant is identifiable. */
+function SkeletonSample({ label, children }) {
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="font-mono text-xs text-text-muted">{label}</p>
+      {children}
+    </div>
   );
 }
 
@@ -701,6 +713,54 @@ export function KitchenSinkPage() {
           total={0}
           error={{ message: 'Could not load customers. Try again.' }}
         />
+      </Section>
+
+      <Section title="EmptyState">
+        {/* Boxed so the centring is visible against a container edge. */}
+        <div className="rounded-md border border-border bg-surface">
+          <EmptyState
+            icon={Users}
+            title="No customers yet"
+            description="Customers you add will appear here."
+            action={{
+              label: 'Add customer',
+              onClick: () => setLastAction('EmptyState action clicked'),
+            }}
+          />
+        </div>
+        <p className="text-xs text-text-muted">
+          <span className="font-mono">icon</span> and{' '}
+          <span className="font-mono">action</span> are both optional. DataTable
+          falls back to a title-and-description one when a module passes no{' '}
+          <span className="font-mono">emptyState</span>, which is what the two
+          sections above render.
+        </p>
+      </Section>
+
+      <Section title="Skeleton">
+        <div className="grid items-start gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <SkeletonSample label='variant="text" rows={4}'>
+            <Skeleton variant="text" rows={4} />
+          </SkeletonSample>
+
+          <SkeletonSample label='variant="card"'>
+            <Skeleton variant="card" />
+          </SkeletonSample>
+
+          <SkeletonSample label='variant="table" rows={5}'>
+            <Skeleton variant="table" rows={5} />
+          </SkeletonSample>
+
+          <SkeletonSample label='variant="form"'>
+            <Skeleton variant="form" />
+          </SkeletonSample>
+        </div>
+        <p className="text-xs text-text-muted">
+          <span className="font-mono">rows</span> applies to text and table only
+          — card and form ignore it. The pulse is removed entirely under{' '}
+          <span className="font-mono">prefers-reduced-motion</span>, not just
+          shortened.
+        </p>
       </Section>
     </div>
   );
