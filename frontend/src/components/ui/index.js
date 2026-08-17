@@ -3,9 +3,9 @@
  * Prop signatures are locked by docs/components.md; implementation is not.
  *
  * Shipped: Button, FormField, FormSelect, StatusBadge, PageHeader, DataTable,
- *          Modal, ConfirmDialog, toast, EmptyState, Skeleton, Drawer.
+ *          Modal, ConfirmDialog, toast, EmptyState, Skeleton, Drawer, KPICard.
  * Still to come: FormMoney, FormDate, FormCheckbox, FormTextarea, FormSection,
- *          FormRow, FormActions, KPICard, DateRangePicker.
+ *          FormRow, FormActions, DateRangePicker.
  */
 
 export { Button } from './Button';
@@ -15,6 +15,7 @@ export { Drawer } from './Drawer';
 export { EmptyState } from './EmptyState';
 export { FormField } from './FormField';
 export { FormSelect } from './FormSelect';
+export { KPICard } from './KPICard';
 export { Modal } from './Modal';
 export { PageHeader } from './PageHeader';
 export { Skeleton } from './Skeleton';

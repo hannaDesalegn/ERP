@@ -9,7 +9,15 @@
  * All data is obviously fake, per docs/security-notes.md § Fake data only.
  */
 
-import { Download, Pencil, Plus, RotateCw, Trash, Users } from 'lucide-react';
+import {
+  Download,
+  Pencil,
+  Plus,
+  RotateCw,
+  Trash,
+  Users,
+  Wallet,
+} from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import {
@@ -20,6 +28,7 @@ import {
   EmptyState,
   FormField,
   FormSelect,
+  KPICard,
   Modal,
   PageHeader,
   Skeleton,
@@ -403,6 +412,45 @@ export function KitchenSinkPage() {
             Unmapped status on purpose — falls back to neutral and logs an error
           </FixedStateLabel>
         </div>
+      </Section>
+
+      <Section title="KPICard">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <KPICard
+            title="Outstanding"
+            value={formatMoney(120490000, 'ETB')}
+            icon={Wallet}
+            trend={{ value: 12.4, direction: 'up', label: 'vs last month' }}
+          />
+          {/* No icon, on purpose — icon is optional. */}
+          <KPICard
+            title="Overdue invoices"
+            value={formatMoney(31200000, 'ETB')}
+            trend={{ value: 4.1, direction: 'down', label: 'vs last month' }}
+          />
+          <KPICard title="Active customers" value="1,204" icon={Users} />
+          <KPICard
+            title="Collected this month"
+            value={formatMoney(88300000, 'ETB')}
+            icon={Wallet}
+            trend={{ value: 2.8, direction: 'up' }}
+            onClick={() => setLastAction('KPICard clicked')}
+          />
+          <KPICard title="Loading" value="—" loading />
+        </div>
+        <p className="text-xs text-text-muted">
+          icon, trend, loading and onClick are all optional. A card with{' '}
+          <span className="font-mono">onClick</span> renders as a button, so it
+          is keyboard-reachable; the rest render as plain divs.{' '}
+          <span className="font-mono">loading</span> renders the kit&apos;s card
+          Skeleton rather than a second pulse.
+        </p>
+        <p className="text-xs text-text-muted">
+          Colour follows <span className="font-mono">trend.direction</span> only
+          — up is always green. On &ldquo;Overdue invoices&rdquo; that is
+          backwards, and the locked signature cannot express it. See README §
+          Known gaps.
+        </p>
       </Section>
 
       <Section title="FormField">

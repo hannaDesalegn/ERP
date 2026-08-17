@@ -293,6 +293,30 @@ Left as a deliberate follow-up rather than folded into the component work:
 swapping them changes the loading appearance of every list page in the app, so
 it deserves its own change and its own look.
 
+### KPICard trend has no polarity — needs a group decision
+
+The locked signature in `docs/components.md` gives the trend a direction and
+nothing else:
+
+```jsx
+trend={{ value: 12.4, direction: 'up', label: 'vs last month' }}
+```
+
+So `up` renders green and `down` renders red, always. That is backwards for
+every metric where a rise is bad news — outstanding balance, overdue invoices,
+low stock, days sales outstanding. The dashboard is exactly the screen that will
+show those, in cards sitting next to ones where up genuinely is good.
+
+The component cannot fix this on its own; the signature has nowhere to put the
+answer. It needs a `polarity` or `intent` prop agreed by all three and written
+into `docs/components.md` **before** the dashboard uses `KPICard`, because
+changing it afterwards means revisiting every card already placed.
+
+Related and smaller: `trend.value` is rendered as a percentage — `12.4` shows as
+`12.4%`. The doc does not say that anywhere. It is the only reading that makes
+sense next to `label: 'vs last month'`, but it is an inference, and it should be
+stated in the signature rather than left for the next person to rediscover.
+
 ### `format.js` whitespace lint errors
 
 `npm run lint` reports two `no-irregular-whitespace` errors in
