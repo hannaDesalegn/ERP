@@ -16,6 +16,7 @@ import {
   Button,
   ConfirmDialog,
   DataTable,
+  Drawer,
   EmptyState,
   FormField,
   FormSelect,
@@ -231,6 +232,8 @@ export function KitchenSinkPage() {
 
   // Modal / ConfirmDialog
   const [modalOpen, setModalOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerSide, setDrawerSide] = useState('right');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -631,6 +634,53 @@ export function KitchenSinkPage() {
             <FormField label="Email" name="modalEmail" type="email" />
           </div>
         </Modal>
+      </Section>
+
+      <Section title="Drawer">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setDrawerSide('right');
+              setDrawerOpen(true);
+            }}
+          >
+            Open drawer (right)
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setDrawerSide('left');
+              setDrawerOpen(true);
+            }}
+          >
+            Open drawer (left)
+          </Button>
+          <span className="text-xs text-text-muted">
+            Same focus trap, Escape and scroll lock as Modal — both use
+            useDialogFocus. Full width below 768px whatever the size.
+          </span>
+        </div>
+
+        <Drawer
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          title="Customer details"
+          side={drawerSide}
+          size="md"
+        >
+          <div className="flex flex-col gap-4">
+            <p className="text-text-muted">
+              Two focusable fields, so tab-cycling is visible.
+            </p>
+            <FormField
+              label="Customer name"
+              name="drawerName"
+              defaultValue="Acme Trading PLC"
+            />
+            <FormField label="Email" name="drawerEmail" type="email" />
+          </div>
+        </Drawer>
       </Section>
 
       <Section title="ConfirmDialog">
