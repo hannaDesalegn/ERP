@@ -165,6 +165,18 @@ All of these work uncontrolled with React Hook Form via `register`, or controlle
 via `Controller`. Use RHF + the Zod resolver — hand-rolled form state is banned
 in this repo.
 
+**Except `FormMoney`, which must use `Controller`, never `register`.** Its
+`onChange` emits a number, not an event, so `register`'s event-based handler has
+no `event.target.value` to read and will throw:
+
+```jsx
+<Controller
+  name="creditLimit"
+  control={control}
+  render={({ field }) => <FormMoney {...field} label="Credit limit" />}
+/>
+```
+
 ---
 
 ## Overlays

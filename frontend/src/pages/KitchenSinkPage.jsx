@@ -26,8 +26,11 @@ import {
   DataTable,
   Drawer,
   EmptyState,
+  FormCheckbox,
   FormField,
+  FormMoney,
   FormSelect,
+  FormTextarea,
   KPICard,
   Modal,
   PageHeader,
@@ -220,6 +223,13 @@ export function KitchenSinkPage() {
     email && !EMAIL_PATTERN.test(email)
       ? 'Must be a valid email address.'
       : undefined;
+
+  // FormMoney / FormTextarea / FormCheckbox
+  const [creditLimit, setCreditLimit] = useState(149900);
+  const [jpyAmount, setJpyAmount] = useState(1500);
+  const [notes, setNotes] = useState('');
+  const [taxExempt, setTaxExempt] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   // FormSelect
   const [currency, setCurrency] = useState('ETB');
@@ -557,6 +567,101 @@ export function KitchenSinkPage() {
             </Button>
           </div>
         </div>
+      </Section>
+
+      <Section title="FormMoney">
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="flex flex-col gap-2">
+            <FormMoney
+              label="Credit limit"
+              name="creditLimit"
+              value={creditLimit}
+              currency="ETB"
+              onChange={setCreditLimit}
+              hint="Type 1499.00 and watch the integer below."
+            />
+            {/* The whole point of the component, made visible: what the caller
+                receives is an integer, never the string that was typed. */}
+            <p className="font-mono text-xs text-text-muted">
+              onChange → {String(creditLimit)} ({typeof creditLimit})
+              <br />
+              formatMoney → {formatMoney(creditLimit, 'ETB')}
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <FormMoney
+              label="Amount (zero-decimal currency)"
+              name="jpyAmount"
+              value={jpyAmount}
+              currency="JPY"
+              onChange={setJpyAmount}
+              hint="JPY has no minor unit, so 1500 means ¥1,500."
+            />
+            <p className="font-mono text-xs text-text-muted">
+              onChange → {String(jpyAmount)} ({typeof jpyAmount})
+              <br />
+              formatMoney → {formatMoney(jpyAmount, 'JPY')}
+            </p>
+          </div>
+        </div>
+        <p className="text-xs text-text-muted">
+          Integer minor units in, integer minor units out — never a float. The
+          currency decides the number of decimal places, so the same component
+          handles ETB and JPY without the caller doing anything. Clearing the
+          field emits <span className="font-mono">null</span>, not{' '}
+          <span className="font-mono">0</span>.
+        </p>
+        <p className="text-xs text-text-muted">
+          Use with <span className="font-mono">Controller</span>, never{' '}
+          <span className="font-mono">register</span> — onChange emits a number
+          rather than an event. See docs/components.md § Forms.
+        </p>
+      </Section>
+
+      <Section title="FormTextarea">
+        <div className="max-w-md">
+          <FormTextarea
+            label="Notes"
+            name="notes"
+            value={notes}
+            onChange={(event) => setNotes(event.target.value)}
+            rows={4}
+            maxLength={200}
+            hint="Capped at 200 characters."
+          />
+        </div>
+        <p className="text-xs text-text-muted">
+          Delegates to FormField with{' '}
+          <span className="font-mono">type=&quot;textarea&quot;</span>, so there
+          is one textarea in the kit rather than two. No character counter — see
+          README § Known gaps. {notes.length}/200 typed.
+        </p>
+      </Section>
+
+      <Section title="FormCheckbox">
+        <div className="flex max-w-md flex-col gap-3">
+          <FormCheckbox
+            label="Customer is tax exempt"
+            name="taxExempt"
+            checked={taxExempt}
+            onChange={(event) => setTaxExempt(event.target.checked)}
+            hint="Removes VAT from every line on this customer's invoices."
+          />
+          <FormCheckbox
+            label="I accept the terms"
+            name="terms"
+            checked={termsAccepted}
+            onChange={(event) => setTermsAccepted(event.target.checked)}
+            error={termsAccepted ? undefined : 'You must accept the terms.'}
+          />
+          <FormCheckbox label="Disabled" name="disabledBox" checked disabled />
+        </div>
+        <p className="text-xs text-text-muted">
+          Label sits beside the box rather than above it. Works with{' '}
+          <span className="font-mono">register</span> — RHF reads{' '}
+          <span className="font-mono">event.target.checked</span>.
+        </p>
       </Section>
 
       <Section title="DataTable">

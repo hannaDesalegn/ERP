@@ -317,6 +317,33 @@ Related and smaller: `trend.value` is rendered as a percentage — `12.4` shows 
 sense next to `label: 'vs last month'`, but it is an inference, and it should be
 stated in the signature rather than left for the next person to rediscover.
 
+### FormTextarea has no character counter
+
+`FormTextarea` delegates to `FormField`, which already renders a `<textarea>`
+when `type="textarea"`. That keeps one textarea implementation in the kit
+instead of two that can drift, and `maxLength` passes straight through.
+
+The cost is that setting `maxLength` gives no character counter — the input
+simply stops accepting characters, with nothing telling the user why. Adding one
+means abandoning the delegation and writing `FormTextarea` standalone, at which
+point the kit has two textareas to keep in step. Deliberate trade, recorded so
+the next person does not "fix" the delegation without knowing what it bought.
+
+### FieldShell — extract when the remaining form components land
+
+The label / hint / error block is now in four copies: `FormField`, `FormSelect`,
+`FormMoney` and `FormCheckbox`. Each carries the same `useId`, the same
+`hintId`/`errorId` pair, the same `describedBy` join, the same `<label>` with its
+required asterisk, and the same two trailing `<p>` tags.
+
+Not extracted yet, on purpose — it would mean editing `FormField` and
+`FormSelect`, which B and C already import, to pay for two new components.
+
+The right moment is when `FormDate`, `FormSection`, `FormRow` and `FormActions`
+land. That is four more copies, and a shared `FieldShell` then pays for itself
+across eight components rather than two. Recorded so it is not rediscovered from
+scratch.
+
 ### `format.js` whitespace lint errors
 
 `npm run lint` reports two `no-irregular-whitespace` errors in
