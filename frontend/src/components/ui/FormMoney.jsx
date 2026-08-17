@@ -5,10 +5,12 @@
  * docs/entities.md § Money is an integer.
  */
 
-import { forwardRef, useEffect, useId, useState } from 'react';
+import { forwardRef, useEffect, useState } from 'react';
 
 import { cn } from '@/lib/cn';
 import { formatMoney, parseMoney } from '@/lib/format';
+
+import { FieldShell, useFieldIds } from './FieldShell';
 
 /** Minor units → the plain digits a user edits: 149900 → "1499.00". */
 function toEditable(minorUnits, currency) {
@@ -59,10 +61,7 @@ export const FormMoney = forwardRef(function FormMoney(
   },
   ref,
 ) {
-  const id = useId();
-  const hintId = `${id}-hint`;
-  const errorId = `${id}-error`;
-  const describedBy = cn(hint && hintId, error && errorId).trim() || undefined;
+  const { id, hintId, errorId, describedBy } = useFieldIds({ hint, error });
 
   // What the user sees while typing. "1499." is a valid keystroke and must
   // survive, so the text is not re-derived from `value` on every change.
@@ -82,16 +81,16 @@ export const FormMoney = forwardRef(function FormMoney(
   };
 
   return (
-    <div className={cn('flex flex-col gap-1', className)}>
-      <label htmlFor={id} className="text-sm font-medium text-text">
-        {label}
-        {required && (
-          <span className="ml-0.5 text-danger" aria-hidden="true">
-            *
-          </span>
-        )}
-      </label>
-
+    <FieldShell
+      label={label}
+      id={id}
+      hintId={hintId}
+      errorId={errorId}
+      required={required}
+      hint={hint}
+      error={error}
+      className={className}
+    >
       <div className="relative">
         {/* ISO 4217 codes are always three letters, so the left pad is stable. */}
         <span
@@ -131,18 +130,6 @@ export const FormMoney = forwardRef(function FormMoney(
           {...rest}
         />
       </div>
-
-      {hint && (
-        <p id={hintId} className="text-xs text-text-muted">
-          {hint}
-        </p>
-      )}
-
-      {error && (
-        <p id={errorId} role="alert" className="text-xs text-danger">
-          {error}
-        </p>
-      )}
-    </div>
+    </FieldShell>
   );
 });

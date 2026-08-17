@@ -134,6 +134,7 @@ const { data } = useQuery({
   options={[{ value: 'active', label: 'Active' }]}
   error={}
   required
+  hint="Determines which price list applies."
   searchable                       // for long lists like product pickers
   clearable
   loading={}                       // async option loading

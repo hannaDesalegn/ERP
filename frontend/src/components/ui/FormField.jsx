@@ -1,6 +1,8 @@
-import { forwardRef, useId } from 'react';
+import { forwardRef } from 'react';
 
 import { cn } from '@/lib/cn';
+
+import { FieldShell, useFieldIds } from './FieldShell';
 
 /**
  * Text-ish form input with label, hint and error.
@@ -38,12 +40,7 @@ export const FormField = forwardRef(function FormField(
   },
   ref,
 ) {
-  const id = useId();
-  const hintId = `${id}-hint`;
-  const errorId = `${id}-error`;
-
-  // Screen readers get the hint and the error read out with the input.
-  const describedBy = cn(hint && hintId, error && errorId).trim() || undefined;
+  const { id, hintId, errorId, describedBy } = useFieldIds({ hint, error });
 
   const fieldClasses = cn(
     'w-full rounded-md border bg-surface px-2.5 py-1.5 text-sm text-text',
@@ -68,33 +65,21 @@ export const FormField = forwardRef(function FormField(
   };
 
   return (
-    <div className={cn('flex flex-col gap-1', className)}>
-      <label htmlFor={id} className="text-sm font-medium text-text">
-        {label}
-        {required && (
-          <span className="ml-0.5 text-danger" aria-hidden="true">
-            *
-          </span>
-        )}
-      </label>
-
+    <FieldShell
+      label={label}
+      id={id}
+      hintId={hintId}
+      errorId={errorId}
+      required={required}
+      hint={hint}
+      error={error}
+      className={className}
+    >
       {type === 'textarea' ? (
         <textarea ref={ref} rows={rows} {...shared} />
       ) : (
         <input ref={ref} type={type} {...shared} />
       )}
-
-      {hint && (
-        <p id={hintId} className="text-xs text-text-muted">
-          {hint}
-        </p>
-      )}
-
-      {error && (
-        <p id={errorId} role="alert" className="text-xs text-danger">
-          {error}
-        </p>
-      )}
-    </div>
+    </FieldShell>
   );
 });

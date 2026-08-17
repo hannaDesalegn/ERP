@@ -1,7 +1,9 @@
 import { Check, ChevronDown, Loader2, X } from 'lucide-react';
-import { forwardRef, useEffect, useId, useRef, useState } from 'react';
+import { forwardRef, useEffect, useRef, useState } from 'react';
 
 import { cn } from '@/lib/cn';
+
+import { FieldShell, useFieldIds } from './FieldShell';
 
 /**
  * Select input.
@@ -25,6 +27,7 @@ import { cn } from '@/lib/cn';
  * @param {boolean} [props.searchable]
  * @param {boolean} [props.clearable]
  * @param {boolean} [props.loading] async option loading
+ * @param {string} [props.hint]
  */
 export const FormSelect = forwardRef(function FormSelect(
   {
@@ -40,14 +43,13 @@ export const FormSelect = forwardRef(function FormSelect(
     loading = false,
     disabled = false,
     placeholder = 'Select…',
+    hint,
     className,
     ...rest
   },
   ref,
 ) {
-  const id = useId();
-  const errorId = `${id}-error`;
-  const describedBy = error ? errorId : undefined;
+  const { id, hintId, errorId, describedBy } = useFieldIds({ hint, error });
 
   const emit = (nextValue) =>
     onChange?.({ target: { name, value: nextValue } });
@@ -60,16 +62,16 @@ export const FormSelect = forwardRef(function FormSelect(
   );
 
   return (
-    <div className={cn('flex flex-col gap-1', className)}>
-      <label htmlFor={id} className="text-sm font-medium text-text">
-        {label}
-        {required && (
-          <span className="ml-0.5 text-danger" aria-hidden="true">
-            *
-          </span>
-        )}
-      </label>
-
+    <FieldShell
+      label={label}
+      id={id}
+      hintId={hintId}
+      errorId={errorId}
+      required={required}
+      hint={hint}
+      error={error}
+      className={className}
+    >
       <div className="relative">
         {searchable ? (
           <SearchableSelect
@@ -127,13 +129,7 @@ export const FormSelect = forwardRef(function FormSelect(
           )}
         </div>
       </div>
-
-      {error && (
-        <p id={errorId} role="alert" className="text-xs text-danger">
-          {error}
-        </p>
-      )}
-    </div>
+    </FieldShell>
   );
 });
 

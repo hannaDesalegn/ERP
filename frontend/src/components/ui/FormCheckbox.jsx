@@ -4,9 +4,11 @@
  * Works with register (RHF reads event.target.checked) or with Controller.
  */
 
-import { forwardRef, useId } from 'react';
+import { forwardRef } from 'react';
 
 import { cn } from '@/lib/cn';
+
+import { FieldShell, useFieldIds } from './FieldShell';
 
 /**
  * @param {object} props
@@ -32,15 +34,19 @@ export const FormCheckbox = forwardRef(function FormCheckbox(
   },
   ref,
 ) {
-  const id = useId();
-  const hintId = `${id}-hint`;
-  const errorId = `${id}-error`;
-  const describedBy = cn(hint && hintId, error && errorId).trim() || undefined;
+  const { id, hintId, errorId, describedBy } = useFieldIds({ hint, error });
 
   return (
-    <div className={cn('flex flex-col gap-1', className)}>
-      {/* Label beside the box, not above it — the other fields stack, a
-          checkbox reads as one line. */}
+    // No `label` on the shell: a checkbox's label sits beside the box, not
+    // above it, so this one is rendered here instead.
+    <FieldShell
+      id={id}
+      hintId={hintId}
+      errorId={errorId}
+      hint={hint}
+      error={error}
+      className={className}
+    >
       <div className="flex items-center gap-2">
         <input
           ref={ref}
@@ -64,18 +70,6 @@ export const FormCheckbox = forwardRef(function FormCheckbox(
           {label}
         </label>
       </div>
-
-      {hint && (
-        <p id={hintId} className="text-xs text-text-muted">
-          {hint}
-        </p>
-      )}
-
-      {error && (
-        <p id={errorId} role="alert" className="text-xs text-danger">
-          {error}
-        </p>
-      )}
-    </div>
+    </FieldShell>
   );
 });
