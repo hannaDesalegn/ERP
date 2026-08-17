@@ -235,6 +235,45 @@ Left red deliberately rather than half-fixed. To be sorted out with the MSW test
 setup — `src/mocks/server.js` via `setupServer`, wired into `src/test/setup.js`,
 plus a render helper that wraps the providers.
 
+### Row actions render but do nothing — customers, and everything copied from it
+
+`CustomerListPage` renders Edit and Delete in the row menu. Neither works:
+
+- **Edit** calls `navigate('/customers/:id/edit')`, and `customerRoutes` exports
+  only `{ path: '/customers' }`. There is no detail route and no edit route, so
+  the click falls through to the catch-all and renders the 404 page inside the
+  shell.
+- **Delete** is `onClick: () => {}` — no confirm, no request, no feedback. It
+  looks like a no-op bug from the user's side, because it is one.
+
+The detail, edit and delete flows were never built in the reference module. That
+matters more than one module's gap: `orders` was copied from it and has the
+identical pair — `navigate('/orders/:id/edit')` against a single `/orders`
+route, and an empty Delete handler. `invoices` carries it too. Any module copied
+from the reference inherits both until the reference is finished.
+
+Owned by B. The row actions should either be wired or removed — a menu entry
+that silently does nothing is worse than an absent one.
+
+### Invoices is not registered
+
+`src/app/registry.js` imports `orders` but holds `invoices` out, commented with
+a `TODO(B)`. Registering it fails the build:
+
+```
+"invoiceKeys" is not exported by "src/modules/invoices/api.js",
+imported by "src/modules/invoices/pages/InvoiceListPage.jsx"
+```
+
+`src/modules/invoices/api.js` is still the copied customers file — the header
+reads "Customers API", `RESOURCE` is `'/customers'`, and it exports
+`customerKeys` / `fetchCustomers` rather than the `invoice*` names the page
+imports. That module's `index.js` and `handlers.js` are already correct, so the
+fix is confined to `api.js`: rename `RESOURCE`, the key namespace, and the six
+CRUD functions. Then uncomment the import and the three spreads in the registry.
+
+Until that lands, invoices has no route, no nav entry, and no mock handlers.
+
 ### `format.js` whitespace lint errors
 
 `npm run lint` reports two `no-irregular-whitespace` errors in
