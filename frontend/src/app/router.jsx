@@ -10,12 +10,14 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 import { ProtectedRoute } from '@/auth/ProtectedRoute';
+import { RequireRole } from '@/auth/RequireRole';
 import { AppShell } from '@/layouts/AppShell';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { ForbiddenPage } from '@/pages/ForbiddenPage';
 import { KitchenSinkPage } from '@/pages/KitchenSinkPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
+import { UsersPage } from '@/pages/UsersPage';
 
 import { moduleRoutes } from './registry';
 
@@ -36,6 +38,17 @@ export const router = createBrowserRouter([
 
       // A's own page, so it sits here rather than coming from the registry.
       { path: '/dashboard', element: <DashboardPage /> },
+
+      // Admin only. RequireRole renders ForbiddenPage in place rather than
+      // redirecting, so the URL still shows what was refused.
+      {
+        path: '/users',
+        element: (
+          <RequireRole roles={['admin']}>
+            <UsersPage />
+          </RequireRole>
+        ),
+      },
 
       // Every module's routes, collected by the registry.
       ...moduleRoutes,

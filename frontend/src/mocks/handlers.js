@@ -10,8 +10,14 @@ import { moduleHandlers } from '@/app/registry';
 
 import { authHandlers } from './authHandlers';
 import { dashboardHandlers } from './dashboardHandlers';
+import { roleHandlers, userHandlers } from './userHandlers';
 
-// TODO(A): users, roles, settings still to come.
-const foundationHandlers = [...authHandlers, ...dashboardHandlers];
+// TODO(A): settings still to come.
+const foundationHandlers = [
+  ...authHandlers,
+  ...dashboardHandlers,
+  ...userHandlers,
+  ...roleHandlers,
+];
 
 export const handlers = [...foundationHandlers, ...moduleHandlers];

@@ -13,8 +13,13 @@ import { FieldShell, useFieldIds } from './FieldShell';
  *                     behaviour for free
  *  - `searchable`   → a filterable listbox, for long lists like product pickers
  *
- * `onChange` always receives an event-shaped object (`{ target: { name, value } }`),
- * so React Hook Form's `register` works in both modes.
+ * `onChange` always receives an event-shaped object (`{ target: { name, value } }`)
+ * in both modes.
+ *
+ * Use `Controller`, not `register`. The control is controlled — it renders
+ * whatever `value` says — and `register` supplies an onChange but no value, so
+ * the select stays on its placeholder however many options the user picks.
+ * Same carve-out as FormMoney; docs/components.md § Forms has the example.
  *
  * @param {object} props
  * @param {string} props.label

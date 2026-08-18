@@ -65,12 +65,16 @@ const ALL_PERMISSIONS = [
  * Role → permissions. The server is the authority on this mapping; the client
  * only ever receives the resulting array on the user.
  *
+ * Exported because GET /api/roles serves this same catalogue: the roles an
+ * admin can assign and the permissions login actually grants have to be one
+ * list, not two that drift the first time someone edits only one of them.
+ *
  * Manager and staff get customers and reports but no orders, invoices,
  * products, suppliers or purchasing — those modules were not in the agreed
  * permission brief. Add them here when the brief says so; the sidebar and every
  * <Can> follow automatically.
  */
-const ROLE_PERMISSIONS = {
+export const ROLE_PERMISSIONS = {
   admin: ALL_PERMISSIONS,
   manager: [
     'dashboard.view',
@@ -144,8 +148,30 @@ function publicUser({ password: _password, ...rest }) {
 }
 
 /** The mock token is just the user id in a wrapper — it proves nothing. */
+const TOKEN_PREFIX = 'mock-token-';
+
 function tokenFor(user) {
-  return `mock-token-${user.id}`;
+  return `${TOKEN_PREFIX}${user.id}`;
+}
+
+/**
+ * The id of the user a request is signed in as, or null.
+ *
+ * Exported for the users handlers, which must refuse to delete the caller's own
+ * account. How a token maps back to a user is this file's business — a second
+ * file parsing the same string format is how the two stop agreeing.
+ *
+ * @param {Request} request
+ * @returns {string|null}
+ */
+export function userIdFromRequest(request) {
+  const header = request.headers.get('Authorization') ?? '';
+  if (!header.startsWith('Bearer ')) return null;
+
+  const token = header.slice('Bearer '.length);
+  return token.startsWith(TOKEN_PREFIX)
+    ? token.slice(TOKEN_PREFIX.length)
+    : null;
 }
 
 /**
@@ -155,11 +181,8 @@ function tokenFor(user) {
  * comparison, which is exactly why it must never ship.
  */
 function userFromRequest(request) {
-  const header = request.headers.get('Authorization') ?? '';
-  if (!header.startsWith('Bearer ')) return null;
-
-  const token = header.slice('Bearer '.length);
-  return users.find((user) => tokenFor(user) === token) ?? null;
+  const id = userIdFromRequest(request);
+  return users.find((user) => user.id === id) ?? null;
 }
 
 export const authHandlers = [
