@@ -363,6 +363,22 @@ The hook needs one line, `cd frontend && npx lint-staged`; the `cd` is required
 because git runs hooks from the repo root and the package lives in `frontend/`.
 Alternatively a root `package.json` could own husky instead.
 
+### Restart the dev server after pulling new MSW handlers
+
+After pulling changes that add or modify MSW handlers, restart the dev server.
+The service worker is registered at startup and does not pick up new handler
+files.
+
+It shows as **"The server returned an unreadable response" on every API call**,
+including login, which reads like broken auth rather than a stale worker. The
+message looks that way because the proxy in `vite.config.js` is unconditional:
+anything MSW does not intercept is forwarded to `VITE_API_PROXY_TARGET`
+(`localhost:8000` by default), nothing is listening there, and the proxy's error
+body is not JSON — so `apiClient` reports it as unparseable rather than as a
+missing mock.
+
+Not a bug. Recorded because it cost twenty minutes to diagnose once already.
+
 ### Outstanding `npm audit` advisories
 
 `docs/security-notes.md` §5 requires `npm audit` clean at high and above before
