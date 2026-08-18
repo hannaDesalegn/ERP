@@ -77,15 +77,15 @@ The workhorse. Every list page in the app is this component.
 
 **Column object:**
 
-| Key | Type | Note |
-|---|---|---|
-| `key` | string | Field name. Also the sort key. |
-| `label` | string | Header text. |
-| `sortable` | boolean | Default false. |
-| `align` | `'left'\|'center'\|'right'` | Money and numbers go right. |
-| `width` | string | CSS width. Omit for auto. |
-| `render` | `(row) => node` | Custom cell. Omit and it prints `row[key]`. |
-| `hideBelow` | `'md'\|'lg'\|'xl'` | Responsive column dropping. |
+| Key         | Type                        | Note                                        |
+| ----------- | --------------------------- | ------------------------------------------- |
+| `key`       | string                      | Field name. Also the sort key.              |
+| `label`     | string                      | Header text.                                |
+| `sortable`  | boolean                     | Default false.                              |
+| `align`     | `'left'\|'center'\|'right'` | Money and numbers go right.                 |
+| `width`     | string                      | CSS width. Omit for auto.                   |
+| `render`    | `(row) => node`             | Custom cell. Omit and it prints `row[key]`. |
+| `hideBelow` | `'md'\|'lg'\|'xl'`          | Responsive column dropping.                 |
 
 `rowActions` entries carrying a `permission` are hidden when the user lacks it —
 **hidden, not secured.** See `docs/security-notes.md`.
@@ -96,14 +96,25 @@ Do not manage table state by hand. This hook syncs it to the URL so pages are
 shareable and refresh-safe:
 
 ```js
-const { page, perPage, sort, search, filters, setPage, setPerPage,
-        setSort, setSearch, setFilters, queryParams } = useTableParams({
-  defaults: { perPage: 25, sort: '-createdAt' },
-  filterKeys: ['status', 'categoryId'],
+const {
+  page,
+  perPage,
+  sort,
+  search,
+  filters,
+  setPage,
+  setPerPage,
+  setSort,
+  setSearch,
+  setFilters,
+  queryParams,
+} = useTableParams({
+  defaults: { perPage: 25, sort: "-createdAt" },
+  filterKeys: ["status", "categoryId"],
 });
 
 const { data } = useQuery({
-  queryKey: ['customers', 'list', queryParams],
+  queryKey: ["customers", "list", queryParams],
   queryFn: () => fetchCustomers(queryParams),
 });
 ```
@@ -166,15 +177,41 @@ All of these work uncontrolled with React Hook Form via `register`, or controlle
 via `Controller`. Use RHF + the Zod resolver — hand-rolled form state is banned
 in this repo.
 
-**Except `FormMoney`, which must use `Controller`, never `register`.** Its
-`onChange` emits a number, not an event, so `register`'s event-based handler has
-no `event.target.value` to read and will throw:
+**Two exceptions. Both must use `Controller`, never `register`** — for the same
+underlying reason: `register` gives a control an `onChange`, a `name` and a
+`ref`, and never gives it a `value`.
+
+`FormMoney`, because its `onChange` emits a number, not an event, so
+`register`'s event-based handler has no `event.target.value` to read and will
+throw:
 
 ```jsx
 <Controller
   name="creditLimit"
   control={control}
   render={({ field }) => <FormMoney {...field} label="Credit limit" />}
+/>
+```
+
+`FormSelect`, because it renders a _controlled_ `<select value={value}>`. Its
+`onChange` is event-shaped and does work with `register` — the failure is
+silent and on the other side: with no `value` prop the select is pinned to its
+placeholder, so picking an option changes the form state and never changes what
+the field displays. Feed both halves through `Controller`:
+
+```jsx
+<Controller
+  name="roleId"
+  control={control}
+  render={({ field }) => (
+    <FormSelect
+      label="Role"
+      name={field.name}
+      value={field.value ?? ""}
+      onChange={field.onChange}
+      options={roleOptions}
+    />
+  )}
 />
 ```
 
@@ -218,13 +255,13 @@ Button says "Publish" → toast says "Published". Not "Success!".
 `variant="auto"` maps known ERP statuses to colours centrally, so `approved` is
 the same green in every module without three people picking three greens:
 
-| Variant | Statuses |
-|---|---|
-| `success` | `active`, `approved`, `paid`, `received`, `fulfilled` |
+| Variant   | Statuses                                                                |
+| --------- | ----------------------------------------------------------------------- |
+| `success` | `active`, `approved`, `paid`, `received`, `fulfilled`                   |
 | `warning` | `pending_approval`, `partially_paid`, `partially_received`, `low_stock` |
-| `danger` | `overdue`, `blocked`, `cancelled`, `void`, `out_of_stock` |
-| `neutral` | `draft`, `inactive`, `discontinued` |
-| `info` | `sent`, `invited` |
+| `danger`  | `overdue`, `blocked`, `cancelled`, `void`, `out_of_stock`               |
+| `neutral` | `draft`, `inactive`, `discontinued`                                     |
+| `info`    | `sent`, `invited`                                                       |
 
 Unknown status → `neutral` plus a console warning. If you add a status to
 `entities.md`, tell A to map it.

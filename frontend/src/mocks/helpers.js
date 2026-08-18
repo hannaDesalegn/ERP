@@ -142,6 +142,20 @@ export function validationError(
 }
 
 /**
+ * 409. The request is well-formed and the caller is allowed to make it, but it
+ * conflicts with the current state — a duplicate SKU or email, a stale version,
+ * an illegal status transition. See docs/api-contract.md §1.
+ *
+ * @param {string} [message]
+ */
+export function conflict(message = 'That conflicts with the current state.') {
+  return HttpResponse.json(
+    { error: { code: 'CONFLICT', message } },
+    { status: 409 },
+  );
+}
+
+/**
  * 404. Also the correct answer when a record exists but this user has no right
  * to know it exists — telling an attacker "it exists, but not for you" is an
  * information leak. See docs/api-contract.md §1.

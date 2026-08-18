@@ -8,7 +8,7 @@
  * See README § Registry pattern.
  */
 
-import { LayoutDashboard } from 'lucide-react';
+import { LayoutDashboard, UserCog } from 'lucide-react';
 
 import {
   customerHandlers,
@@ -58,6 +58,15 @@ export const moduleNav = [
   customerNav,
   orderNav,
   // invoiceNav,
+
+  // Administration, after the business flow. Only admin holds users.view, so
+  // this is the one entry most signed-in users never see.
+  {
+    label: 'Users',
+    icon: UserCog,
+    path: '/users',
+    permission: 'users.view',
+  },
 ];
 
 /** @type {unknown[]} MSW request handlers */

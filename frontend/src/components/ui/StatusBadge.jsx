@@ -25,6 +25,7 @@ const STATUS_VARIANTS = {
   cancelled: 'danger',
   void: 'danger',
   out_of_stock: 'danger',
+  suspended: 'danger',
   // neutral
   draft: 'neutral',
   inactive: 'neutral',
