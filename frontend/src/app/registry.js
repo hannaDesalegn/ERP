@@ -16,6 +16,23 @@ import {
   customerRoutes,
 } from '@/modules/customers';
 import { orderHandlers, orderNav, orderRoutes } from '@/modules/orders';
+import {
+  productHandlers,
+  productNav,
+  productRoutes,
+} from '@/modules/products';
+import {
+  purchasingHandlers,
+  purchasingNav,
+  purchasingRoutes,
+} from '@/modules/purchasing';
+import {
+  supplierHandlers,
+  supplierNav,
+  supplierRoutes,
+} from '@/modules/suppliers';
+
+// Every module is registered except invoices, held out below.
 
 // TODO(B): invoices is held out of the registry — registering it breaks the
 // build. src/modules/invoices/api.js is still the copied customers file: it
@@ -29,19 +46,21 @@ import { orderHandlers, orderNav, orderRoutes } from '@/modules/orders';
 //   invoiceRoutes,
 // } from '@/modules/invoices';
 
-// TODO(A): one import line per module as C lands them —
-// products, suppliers, purchasing.
-
 /** @type {import('react-router-dom').RouteObject[]} */
 export const moduleRoutes = [
   ...customerRoutes,
   ...orderRoutes,
   // ...invoiceRoutes,
+  ...productRoutes,
+  ...supplierRoutes,
+  ...purchasingRoutes,
 ];
 
 /**
  * Sidebar order, not alphabetical: it follows the business flow a user works
- * through — customer, then their order, then the invoice for it.
+ * through — customer, then their order, then the invoice for it. Operations
+ * follows the same logic — the product, who supplies it, then the order that
+ * restocks it — and sits after commercial rather than interleaved.
  *
  * @type {{ label: string, icon: unknown, path: string, permission: string }[]}
  */
@@ -58,6 +77,9 @@ export const moduleNav = [
   customerNav,
   orderNav,
   // invoiceNav,
+  productNav,
+  supplierNav,
+  purchasingNav,
 
   // Administration, after the business flow. Only admin holds users.view, so
   // this is the one entry most signed-in users never see.
@@ -74,4 +96,7 @@ export const moduleHandlers = [
   ...customerHandlers,
   ...orderHandlers,
   // ...invoiceHandlers,
+  ...productHandlers,
+  ...supplierHandlers,
+  ...purchasingHandlers,
 ];
