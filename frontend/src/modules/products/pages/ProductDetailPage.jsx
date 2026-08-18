@@ -13,7 +13,7 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { Button, DataTable, PageHeader, StatusBadge } from '@/components/ui';
-import { Can } from '@/lib/auth';
+import { Can } from '@/auth/AuthContext';
 import {
   formatDateTime,
   formatEnum,

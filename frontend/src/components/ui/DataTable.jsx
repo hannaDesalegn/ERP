@@ -8,8 +8,10 @@ import {
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
-import { useAuth } from '@/lib/auth';
+import { useAuth } from '@/auth/AuthContext';
 import { cn } from '@/lib/cn';
+
+import { EmptyState } from './EmptyState';
 
 const PER_PAGE_OPTIONS = [10, 25, 50, 100];
 
@@ -210,10 +212,13 @@ export function DataTable({
                 {!loading && data.length === 0 && (
                   <tr>
                     <td colSpan={columnCount} className="px-3 py-10">
+                      {/* No action on the default — DataTable does not know the
+                          noun. Modules should pass their own with one. */}
                       {emptyState ?? (
-                        <p className="text-center text-sm text-text-muted">
-                          Nothing here yet.
-                        </p>
+                        <EmptyState
+                          title="Nothing here yet"
+                          description="Rows will appear here as they are added."
+                        />
                       )}
                     </td>
                   </tr>
@@ -472,9 +477,10 @@ function MobileCards({
     return (
       <div className="rounded-md border border-border bg-surface px-3 py-10 md:hidden">
         {emptyState ?? (
-          <p className="text-center text-sm text-text-muted">
-            Nothing here yet.
-          </p>
+          <EmptyState
+            title="Nothing here yet"
+            description="Rows will appear here as they are added."
+          />
         )}
       </div>
     );

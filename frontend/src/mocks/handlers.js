@@ -8,7 +8,10 @@
 
 import { moduleHandlers } from '@/app/registry';
 
-// TODO(A): A's own handlers — auth, dashboard, users, roles, settings.
-const foundationHandlers = [];
+import { authHandlers } from './authHandlers';
+import { dashboardHandlers } from './dashboardHandlers';
+
+// TODO(A): users, roles, settings still to come.
+const foundationHandlers = [...authHandlers, ...dashboardHandlers];
 
 export const handlers = [...foundationHandlers, ...moduleHandlers];

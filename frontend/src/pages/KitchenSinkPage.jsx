@@ -9,29 +9,36 @@
  * All data is obviously fake, per docs/security-notes.md § Fake data only.
  */
 
-import { Download, Pencil, Plus, RotateCw, Trash } from 'lucide-react';
+import {
+  Download,
+  Pencil,
+  Plus,
+  RotateCw,
+  Trash,
+  Users,
+  Wallet,
+} from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   Button,
   ConfirmDialog,
   DataTable,
+  Drawer,
+  EmptyState,
+  FormCheckbox,
   FormField,
+  FormMoney,
   FormSelect,
+  FormTextarea,
+  KPICard,
   Modal,
   PageHeader,
+  Skeleton,
   StatusBadge,
   toast,
 } from '@/components/ui';
-import { AuthProvider } from '@/lib/auth';
 import { formatMoney } from '@/lib/format';
-
-const DEMO_USER = {
-  id: 'usr_01',
-  firstName: 'Demo',
-  lastName: 'Admin',
-  permissions: ['customers.edit', 'customers.delete'],
-};
 
 const CUSTOMERS = [
   {
@@ -171,6 +178,16 @@ function Section({ title, fixed = false, children }) {
   );
 }
 
+/** Labelled cell for the Skeleton grid, so each variant is identifiable. */
+function SkeletonSample({ label, children }) {
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="font-mono text-xs text-text-muted">{label}</p>
+      {children}
+    </div>
+  );
+}
+
 /** Marks an example that is deliberately frozen, so it does not read as a bug. */
 function FixedStateLabel({ children = 'Fixed state — not interactive' }) {
   return (
@@ -207,6 +224,13 @@ export function KitchenSinkPage() {
       ? 'Must be a valid email address.'
       : undefined;
 
+  // FormMoney / FormTextarea / FormCheckbox
+  const [creditLimit, setCreditLimit] = useState(149900);
+  const [jpyAmount, setJpyAmount] = useState(1500);
+  const [notes, setNotes] = useState('');
+  const [taxExempt, setTaxExempt] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+
   // FormSelect
   const [currency, setCurrency] = useState('ETB');
   const [status, setStatus] = useState('');
@@ -227,6 +251,8 @@ export function KitchenSinkPage() {
 
   // Modal / ConfirmDialog
   const [modalOpen, setModalOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerSide, setDrawerSide] = useState('right');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -398,6 +424,45 @@ export function KitchenSinkPage() {
         </div>
       </Section>
 
+      <Section title="KPICard">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <KPICard
+            title="Outstanding"
+            value={formatMoney(120490000, 'ETB')}
+            icon={Wallet}
+            trend={{ value: 12.4, direction: 'up', label: 'vs last month' }}
+          />
+          {/* No icon, on purpose — icon is optional. */}
+          <KPICard
+            title="Overdue invoices"
+            value={formatMoney(31200000, 'ETB')}
+            trend={{ value: 4.1, direction: 'down', label: 'vs last month' }}
+          />
+          <KPICard title="Active customers" value="1,204" icon={Users} />
+          <KPICard
+            title="Collected this month"
+            value={formatMoney(88300000, 'ETB')}
+            icon={Wallet}
+            trend={{ value: 2.8, direction: 'up' }}
+            onClick={() => setLastAction('KPICard clicked')}
+          />
+          <KPICard title="Loading" value="—" loading />
+        </div>
+        <p className="text-xs text-text-muted">
+          icon, trend, loading and onClick are all optional. A card with{' '}
+          <span className="font-mono">onClick</span> renders as a button, so it
+          is keyboard-reachable; the rest render as plain divs.{' '}
+          <span className="font-mono">loading</span> renders the kit&apos;s card
+          Skeleton rather than a second pulse.
+        </p>
+        <p className="text-xs text-text-muted">
+          Colour follows <span className="font-mono">trend.direction</span> only
+          — up is always green. On &ldquo;Overdue invoices&rdquo; that is
+          backwards, and the locked signature cannot express it. See README §
+          Known gaps.
+        </p>
+      </Section>
+
       <Section title="FormField">
         <div className="grid gap-4 md:grid-cols-2">
           <FormField
@@ -504,6 +569,101 @@ export function KitchenSinkPage() {
         </div>
       </Section>
 
+      <Section title="FormMoney">
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="flex flex-col gap-2">
+            <FormMoney
+              label="Credit limit"
+              name="creditLimit"
+              value={creditLimit}
+              currency="ETB"
+              onChange={setCreditLimit}
+              hint="Type 1499.00 and watch the integer below."
+            />
+            {/* The whole point of the component, made visible: what the caller
+                receives is an integer, never the string that was typed. */}
+            <p className="font-mono text-xs text-text-muted">
+              onChange → {String(creditLimit)} ({typeof creditLimit})
+              <br />
+              formatMoney → {formatMoney(creditLimit, 'ETB')}
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <FormMoney
+              label="Amount (zero-decimal currency)"
+              name="jpyAmount"
+              value={jpyAmount}
+              currency="JPY"
+              onChange={setJpyAmount}
+              hint="JPY has no minor unit, so 1500 means ¥1,500."
+            />
+            <p className="font-mono text-xs text-text-muted">
+              onChange → {String(jpyAmount)} ({typeof jpyAmount})
+              <br />
+              formatMoney → {formatMoney(jpyAmount, 'JPY')}
+            </p>
+          </div>
+        </div>
+        <p className="text-xs text-text-muted">
+          Integer minor units in, integer minor units out — never a float. The
+          currency decides the number of decimal places, so the same component
+          handles ETB and JPY without the caller doing anything. Clearing the
+          field emits <span className="font-mono">null</span>, not{' '}
+          <span className="font-mono">0</span>.
+        </p>
+        <p className="text-xs text-text-muted">
+          Use with <span className="font-mono">Controller</span>, never{' '}
+          <span className="font-mono">register</span> — onChange emits a number
+          rather than an event. See docs/components.md § Forms.
+        </p>
+      </Section>
+
+      <Section title="FormTextarea">
+        <div className="max-w-md">
+          <FormTextarea
+            label="Notes"
+            name="notes"
+            value={notes}
+            onChange={(event) => setNotes(event.target.value)}
+            rows={4}
+            maxLength={200}
+            hint="Capped at 200 characters."
+          />
+        </div>
+        <p className="text-xs text-text-muted">
+          Delegates to FormField with{' '}
+          <span className="font-mono">type=&quot;textarea&quot;</span>, so there
+          is one textarea in the kit rather than two. No character counter — see
+          README § Known gaps. {notes.length}/200 typed.
+        </p>
+      </Section>
+
+      <Section title="FormCheckbox">
+        <div className="flex max-w-md flex-col gap-3">
+          <FormCheckbox
+            label="Customer is tax exempt"
+            name="taxExempt"
+            checked={taxExempt}
+            onChange={(event) => setTaxExempt(event.target.checked)}
+            hint="Removes VAT from every line on this customer's invoices."
+          />
+          <FormCheckbox
+            label="I accept the terms"
+            name="terms"
+            checked={termsAccepted}
+            onChange={(event) => setTermsAccepted(event.target.checked)}
+            error={termsAccepted ? undefined : 'You must accept the terms.'}
+          />
+          <FormCheckbox label="Disabled" name="disabledBox" checked disabled />
+        </div>
+        <p className="text-xs text-text-muted">
+          Label sits beside the box rather than above it. Works with{' '}
+          <span className="font-mono">register</span> — RHF reads{' '}
+          <span className="font-mono">event.target.checked</span>.
+        </p>
+      </Section>
+
       <Section title="DataTable">
         <div className="flex flex-wrap items-center gap-2">
           <Button
@@ -522,66 +682,64 @@ export function KitchenSinkPage() {
           </span>
         </div>
 
-        {/* Nested AuthProvider so permission-filtered row actions can be shown
-            before the real auth flow exists. Week-2 work replaces this. */}
-        <AuthProvider initialUser={DEMO_USER}>
-          <DataTable
-            columns={columns}
-            data={tableLoading ? [] : pageRows}
-            loading={tableLoading}
-            page={safePage}
-            perPage={perPage}
-            total={rows.length}
-            onPageChange={setPage}
-            onPerPageChange={(value) => {
-              setPerPage(value);
-              setPage(1);
-            }}
-            sort={sort}
-            onSortChange={setSort}
-            searchable
-            searchValue={search}
-            onSearchChange={(value) => {
-              setSearch(value);
-              setPage(1);
-            }}
-            onRowClick={(row) => setLastAction(`Row opened: ${row.code}`)}
-            rowActions={(row) => [
-              {
-                label: 'Edit',
-                icon: Pencil,
-                permission: 'customers.edit',
-                onClick: () => setLastAction(`Edit ${row.code}`),
-              },
-              {
-                label: 'Delete',
-                icon: Trash,
-                permission: 'customers.delete',
-                destructive: true,
-                onClick: () => setLastAction(`Delete ${row.code}`),
-              },
-              // Hidden: the demo user has no orders.approve.
-              {
-                label: 'Approve',
-                permission: 'orders.approve',
-                onClick: () => {},
-              },
-            ]}
-            selectable
-            selectedIds={selected}
-            onSelectionChange={setSelected}
-            bulkActions={[
-              {
-                label: 'Export selected',
-                onClick: () =>
-                  setLastAction(`Export ${selected.length} selected`),
-              },
-            ]}
-            rowKey="id"
-            stickyHeader
-            density="comfortable"
-          />
-        </AuthProvider>
+        {/* Row actions are filtered by the signed-in user's permissions — sign
+            in as staff and Edit/Delete disappear. */}
+        <DataTable
+          columns={columns}
+          data={tableLoading ? [] : pageRows}
+          loading={tableLoading}
+          page={safePage}
+          perPage={perPage}
+          total={rows.length}
+          onPageChange={setPage}
+          onPerPageChange={(value) => {
+            setPerPage(value);
+            setPage(1);
+          }}
+          sort={sort}
+          onSortChange={setSort}
+          searchable
+          searchValue={search}
+          onSearchChange={(value) => {
+            setSearch(value);
+            setPage(1);
+          }}
+          onRowClick={(row) => setLastAction(`Row opened: ${row.code}`)}
+          rowActions={(row) => [
+            {
+              label: 'Edit',
+              icon: Pencil,
+              permission: 'customers.edit',
+              onClick: () => setLastAction(`Edit ${row.code}`),
+            },
+            {
+              label: 'Delete',
+              icon: Trash,
+              permission: 'customers.delete',
+              destructive: true,
+              onClick: () => setLastAction(`Delete ${row.code}`),
+            },
+            // Hidden: the demo user has no orders.approve.
+            {
+              label: 'Approve',
+              permission: 'orders.approve',
+              onClick: () => {},
+            },
+          ]}
+          selectable
+          selectedIds={selected}
+          onSelectionChange={setSelected}
+          bulkActions={[
+            {
+              label: 'Export selected',
+              onClick: () =>
+                setLastAction(`Export ${selected.length} selected`),
+            },
+          ]}
+          rowKey="id"
+          stickyHeader
+          density="comfortable"
+        />
       </Section>
 
       <Section title="Modal">
@@ -629,6 +787,53 @@ export function KitchenSinkPage() {
             <FormField label="Email" name="modalEmail" type="email" />
           </div>
         </Modal>
+      </Section>
+
+      <Section title="Drawer">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setDrawerSide('right');
+              setDrawerOpen(true);
+            }}
+          >
+            Open drawer (right)
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setDrawerSide('left');
+              setDrawerOpen(true);
+            }}
+          >
+            Open drawer (left)
+          </Button>
+          <span className="text-xs text-text-muted">
+            Same focus trap, Escape and scroll lock as Modal — both use
+            useDialogFocus. Full width below 768px whatever the size.
+          </span>
+        </div>
+
+        <Drawer
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          title="Customer details"
+          side={drawerSide}
+          size="md"
+        >
+          <div className="flex flex-col gap-4">
+            <p className="text-text-muted">
+              Two focusable fields, so tab-cycling is visible.
+            </p>
+            <FormField
+              label="Customer name"
+              name="drawerName"
+              defaultValue="Acme Trading PLC"
+            />
+            <FormField label="Email" name="drawerEmail" type="email" />
+          </div>
+        </Drawer>
       </Section>
 
       <Section title="ConfirmDialog">
@@ -711,6 +916,54 @@ export function KitchenSinkPage() {
           total={0}
           error={{ message: 'Could not load customers. Try again.' }}
         />
+      </Section>
+
+      <Section title="EmptyState">
+        {/* Boxed so the centring is visible against a container edge. */}
+        <div className="rounded-md border border-border bg-surface">
+          <EmptyState
+            icon={Users}
+            title="No customers yet"
+            description="Customers you add will appear here."
+            action={{
+              label: 'Add customer',
+              onClick: () => setLastAction('EmptyState action clicked'),
+            }}
+          />
+        </div>
+        <p className="text-xs text-text-muted">
+          <span className="font-mono">icon</span> and{' '}
+          <span className="font-mono">action</span> are both optional. DataTable
+          falls back to a title-and-description one when a module passes no{' '}
+          <span className="font-mono">emptyState</span>, which is what the two
+          sections above render.
+        </p>
+      </Section>
+
+      <Section title="Skeleton">
+        <div className="grid items-start gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <SkeletonSample label='variant="text" rows={4}'>
+            <Skeleton variant="text" rows={4} />
+          </SkeletonSample>
+
+          <SkeletonSample label='variant="card"'>
+            <Skeleton variant="card" />
+          </SkeletonSample>
+
+          <SkeletonSample label='variant="table" rows={5}'>
+            <Skeleton variant="table" rows={5} />
+          </SkeletonSample>
+
+          <SkeletonSample label='variant="form"'>
+            <Skeleton variant="form" />
+          </SkeletonSample>
+        </div>
+        <p className="text-xs text-text-muted">
+          <span className="font-mono">rows</span> applies to text and table only
+          — card and form ignore it. The pulse is removed entirely under{' '}
+          <span className="font-mono">prefers-reduced-motion</span>, not just
+          shortened.
+        </p>
       </Section>
     </div>
   );

@@ -25,7 +25,7 @@ import {
   StatusBadge,
   toast,
 } from '@/components/ui';
-import { Can } from '@/lib/auth';
+import { Can } from '@/auth/AuthContext';
 import { formatDate, formatDateTime, formatMoney, formatNumber } from '@/lib/format';
 
 import { PurchaseOrderReceiveDialog } from '../components/PurchaseOrderReceiveDialog';

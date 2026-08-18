@@ -39,6 +39,12 @@ export default {
           DEFAULT: 'var(--color-info)',
           bg: 'var(--color-info-bg)',
         },
+        // Auth screen only. See tokens.css — not app-interior colours.
+        ink: {
+          DEFAULT: 'var(--color-ink)',
+          muted: 'var(--color-ink-muted)',
+        },
+        bone: 'var(--color-bone)',
       },
       borderRadius: {
         sm: 'var(--radius-sm)',
@@ -48,6 +54,9 @@ export default {
       fontFamily: {
         sans: 'var(--font-sans)',
         mono: 'var(--font-mono)',
+        // Condensed poster face. `font-display` belongs to the auth screen and
+        // nothing else — the app interior is set in sans, on purpose.
+        display: 'var(--font-display)',
       },
       // Row heights from docs/components.md § Design tokens: 40px comfortable,
       // 32px compact. Only DataTable uses these.

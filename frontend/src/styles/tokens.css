@@ -5,33 +5,50 @@
  * names are locked; the values are A's to tune. Modules never hardcode a hex
  * value — they use the Tailwind class that maps to the token
  * (see tailwind.config.js).
+ *
+ * The neutrals are one hue (218°) at rising saturation, so every grey in the
+ * app is the same grey at a different depth rather than four unrelated ones.
+ * The status tints are matched in lightness so a row of badges reads as a set.
+ * Every foreground below clears 4.5:1 on its own background — checked, not
+ * assumed.
  */
 
 :root {
   /* Surfaces */
-  --color-bg: #f6f7f9;
+  --color-bg: #f4f6f9;
   --color-surface: #ffffff;
-  --color-border: #dfe3e8;
+  --color-border: #dde2ea;
 
   /* Text */
-  --color-text: #16202c;
-  --color-text-muted: #5b6775;
+  --color-text: #141b26;
+  --color-text-muted: #5c6675;
 
   /* Brand */
-  --color-primary: #1c5fd6;
-  --color-primary-hover: #164ba9;
+  --color-primary: #1b56c4;
+  --color-primary-hover: #15408f;
   --color-primary-fg: #ffffff;
 
   /* Status, each with a -bg variant. Pairs with StatusBadge variant="auto".
      Foregrounds clear 4.5:1 against their own -bg. */
-  --color-success: #1a6c3d;
-  --color-success-bg: #e3f5e9;
-  --color-warning: #8a5306;
-  --color-warning-bg: #fdf1dc;
-  --color-danger: #b3261e;
-  --color-danger-bg: #fce9e7;
-  --color-info: #0f5f8a;
-  --color-info-bg: #e2f2fa;
+  --color-success: #186a3f;
+  --color-success-bg: #e6f2ea;
+  --color-warning: #8a5208;
+  --color-warning-bg: #f8efdc;
+  --color-danger: #b02a22;
+  --color-danger-bg: #fae9e6;
+  --color-info: #10577f;
+  --color-info-bg: #e4eff7;
+
+  /* Auth screen only. Deliberately not surface tokens: nothing inside the
+     AppShell renders on these, and nothing inside the AppShell should start.
+
+     Bone is the light half of the login split. Pure white against near-black is
+     a harsh edge, so the poster's counterpart is warmed a step — but only here.
+     The app interior stays #ffffff, because a dense table of 25 rows wants a
+     neutral ground, not a tinted one. */
+  --color-ink: #0e1014;
+  --color-ink-muted: #b0b7c2;
+  --color-bone: #f7f5f1;
 
   /* Radius */
   --radius-sm: 4px;
@@ -49,12 +66,15 @@
   --space-10: 40px;
   --space-12: 48px;
 
-  /* Type. System fallbacks only — we do not add a font CDN, that is a
-     third-party origin this app does not need. Mono carries information:
-     SKUs, order numbers, IDs, quantities. */
+  /* Type. Sans and mono are system fallbacks — we do not add a font CDN, that
+     is a third-party origin this app does not need. Display is Anton, served
+     from our own origin via @fontsource (an npm package, not a CDN link) and
+     loaded only by the auth screen. Mono carries information: SKUs, order
+     numbers, IDs, quantities. */
   --font-sans:
     Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
     sans-serif;
   --font-mono:
     'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-display: Anton, 'Arial Narrow', 'Helvetica Neue Condensed', sans-serif;
 }

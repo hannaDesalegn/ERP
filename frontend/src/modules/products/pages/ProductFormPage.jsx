@@ -17,9 +17,15 @@ import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { Button, FormField, FormSelect, PageHeader, toast } from '@/components/ui';
+import {
+  Button,
+  FormField,
+  FormMoney,
+  FormSelect,
+  PageHeader,
+  toast,
+} from '@/components/ui';
 
-import { ProductMoneyField } from '../components/ProductMoneyField';
 import {
   createProduct,
   fetchProduct,
@@ -214,7 +220,7 @@ export function ProductFormPage() {
             name="costPrice"
             control={control}
             render={({ field }) => (
-              <ProductMoneyField
+              <FormMoney
                 label="Cost price"
                 name={field.name}
                 value={field.value}
@@ -231,7 +237,7 @@ export function ProductFormPage() {
             name="sellingPrice"
             control={control}
             render={({ field }) => (
-              <ProductMoneyField
+              <FormMoney
                 label="Selling price"
                 name={field.name}
                 value={field.value}

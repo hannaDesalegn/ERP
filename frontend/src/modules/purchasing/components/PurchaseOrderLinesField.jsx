@@ -13,12 +13,11 @@
 import { Plus, Trash } from 'lucide-react';
 import { Controller, useFieldArray } from 'react-hook-form';
 
-import { Button, FormSelect } from '@/components/ui';
+import { Button, FormMoney, FormSelect } from '@/components/ui';
 import { formatMoney } from '@/lib/format';
 
 import { calculateLineTotal, calculateTotals } from '../mock';
 import { purchaseOrderLineDefaults } from '../schema';
-import { PurchaseOrderMoneyField } from './PurchaseOrderMoneyField';
 
 /**
  * @param {object} props
@@ -163,7 +162,7 @@ export function PurchaseOrderLinesField({
                   name={`lines.${index}.unitPrice`}
                   control={control}
                   render={({ field: priceField }) => (
-                    <PurchaseOrderMoneyField
+                    <FormMoney
                       label="Unit price"
                       name={priceField.name}
                       value={priceField.value}

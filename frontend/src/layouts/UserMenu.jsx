@@ -1,18 +1,18 @@
 /**
  * User menu — owned by A.
  *
- * Reads the current user from AuthProvider. Until week 2 that user is a stub
- * set in src/app/providers.jsx; nothing here changes when real auth lands.
+ * Reads the signed-in user from AuthProvider and owns the only Log out control
+ * in the app.
  */
 
 import { LogOut } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { useAuth } from '@/lib/auth';
+import { useAuth } from '@/auth/AuthContext';
 import { cn } from '@/lib/cn';
 
-/** "Demo Admin" → "DA". Falls back to the email's first letter. */
+/** "Meron Alemu" → "MA". Falls back to the email's first letter. */
 function initialsFor(user) {
   const first = user?.firstName?.[0] ?? '';
   const last = user?.lastName?.[0] ?? '';
@@ -20,7 +20,7 @@ function initialsFor(user) {
 }
 
 export function UserMenu() {
-  const { user, setUser } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const containerRef = useRef(null);
@@ -38,13 +38,12 @@ export function UserMenu() {
 
   const name = [user.firstName, user.lastName].filter(Boolean).join(' ');
 
-  const logout = () => {
+  // logout() clears client state even if the request fails, so this always
+  // ends up at /login. replace so Back doesn't return to the signed-in shell.
+  const handleLogout = async () => {
     setOpen(false);
-    // TODO(A), week 2: also POST /auth/logout so the server invalidates the
-    // refresh token. Clearing client state alone is not a logout —
-    // docs/security-notes.md § Token handling.
-    setUser(null);
-    navigate('/login');
+    await logout();
+    navigate('/login', { replace: true });
   };
 
   return (
@@ -75,12 +74,14 @@ export function UserMenu() {
           <div className="border-b border-border px-3 py-2">
             <p className="text-sm font-medium text-text">{name}</p>
             <p className="truncate text-xs text-text-muted">{user.email}</p>
+            {/* roleName is the label; roleId holds the slug the guards match. */}
+            <p className="mt-0.5 text-xs text-text-muted">{user.roleName}</p>
           </div>
 
           <button
             type="button"
             role="menuitem"
-            onClick={logout}
+            onClick={handleLogout}
             className={cn(
               'flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm text-text',
               'hover:bg-bg focus-visible:bg-bg focus-visible:outline-none',

@@ -3,19 +3,25 @@
  * Prop signatures are locked by docs/components.md; implementation is not.
  *
  * Shipped: Button, FormField, FormSelect, StatusBadge, PageHeader, DataTable,
- *          Modal, ConfirmDialog, toast.
- * Still to come: FormMoney, FormDate, FormCheckbox, FormTextarea, FormSection,
- *          FormRow, FormActions, Drawer, KPICard, EmptyState, Skeleton,
- *          DateRangePicker.
+ *          Modal, ConfirmDialog, toast, EmptyState, Skeleton, Drawer, KPICard,
+ *          FormMoney, FormCheckbox, FormTextarea.
+ * Still to come: FormDate, FormSection, FormRow, FormActions, DateRangePicker.
  */
 
 export { Button } from './Button';
 export { ConfirmDialog } from './ConfirmDialog';
 export { DataTable } from './DataTable';
+export { Drawer } from './Drawer';
+export { EmptyState } from './EmptyState';
+export { FormCheckbox } from './FormCheckbox';
 export { FormField } from './FormField';
+export { FormMoney } from './FormMoney';
 export { FormSelect } from './FormSelect';
+export { FormTextarea } from './FormTextarea';
+export { KPICard } from './KPICard';
 export { Modal } from './Modal';
 export { PageHeader } from './PageHeader';
+export { Skeleton } from './Skeleton';
 export { StatusBadge } from './StatusBadge';
 // Toaster is mounted once in providers.jsx; modules only ever import `toast`.
 export { toast, Toaster } from './toast';

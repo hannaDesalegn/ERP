@@ -1,27 +1,41 @@
 /**
  * Route tree — owned by A.
  *
- * Everything renders inside AppShell, including 403 and 404 — losing the nav
- * when you hit a bad URL leaves the user stranded.
- *
- * TODO(A), week 2: wrap the shell in ProtectedRoute, and add /login outside it.
+ * Every signed-in page renders inside AppShell, including 403 and 404 — losing
+ * the nav when you hit a bad URL leaves the user stranded. /login is the one
+ * exception: it is a full-viewport screen with its own layout, so it sits
+ * outside the shell rather than inside it with the chrome hidden.
  */
 
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
+import { ProtectedRoute } from '@/auth/ProtectedRoute';
 import { AppShell } from '@/layouts/AppShell';
+import { DashboardPage } from '@/pages/DashboardPage';
 import { ForbiddenPage } from '@/pages/ForbiddenPage';
 import { KitchenSinkPage } from '@/pages/KitchenSinkPage';
+import { LoginPage } from '@/pages/LoginPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 
 import { moduleRoutes } from './registry';
 
 export const router = createBrowserRouter([
+  // Outside the shell, deliberately. Must stay above the shell route.
+  { path: '/login', element: <LoginPage /> },
+
   {
-    element: <AppShell />,
+    // Everything below this line requires a signed-in user. 403 and 404 sit
+    // inside it deliberately — losing the nav on a bad URL strands the user.
+    element: (
+      <ProtectedRoute>
+        <AppShell />
+      </ProtectedRoute>
+    ),
     children: [
-      // TODO(A), week 3: point this at /dashboard once that page exists.
-      { index: true, element: <Navigate to="/customers" replace /> },
+      { index: true, element: <Navigate to="/dashboard" replace /> },
+
+      // A's own page, so it sits here rather than coming from the registry.
+      { path: '/dashboard', element: <DashboardPage /> },
 
       // Every module's routes, collected by the registry.
       ...moduleRoutes,

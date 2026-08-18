@@ -193,23 +193,156 @@ would build the UI against the wrong shape.
 
 Post-backend item. Not scheduled, no owner yet.
 
-### Real auth — **must be gone before the demo**
+### Real auth — **done, except for session persistence**
 
-`src/app/providers.jsx` contains a `STUB_USER` constant holding the full
-permission catalogue, passed to `AuthProvider` as `initialUser`.
+`STUB_USER` is gone. `src/auth/` now holds the whole flow: `AuthContext.jsx`
+(state, `login`, `logout`, `<Can>`, `useCan`), `ProtectedRoute.jsx` and
+`RequireRole.jsx`. `POST /auth/login`, `GET /auth/me` and `POST /auth/logout`
+are mocked in `src/mocks/authHandlers.js` against three seed accounts —
+`admin@zion.test`, `manager@zion.test`, `staff@zion.test`.
 
-It exists because `<Can>` filters the sidebar: with no user, every nav entry is
-hidden and the app looks empty. It is not a login and it is not a security
-control — it is a placeholder so the shell is usable before week 2.
+The access token lives in React state and nowhere else, so **a page refresh
+signs you out**. That is the documented decision, not a bug
+(`docs/security-notes.md` § Token handling), and it is the one piece still
+outstanding: booting from `POST /auth/refresh` against an httpOnly cookie, as
+specified in `docs/api-contract.md` §3. `isLoading` on the auth context already
+exists for it and `ProtectedRoute` already branches on it, so that work should
+not touch any consumer.
 
-**Week 2 (A):** delete the constant and the `initialUser` prop, and boot from
-`/auth/refresh` then `/auth/me` as specified in `docs/api-contract.md` §3.
-Nothing else changes — `useAuth`, `useCan` and `<Can>` already read from the
-provider.
+`GET /auth/me` is written and correct but currently unreferenced — with no
+persisted token there is nothing to restore on mount. It becomes live with
+refresh.
 
-Related: the user menu's Log out clears auth state and navigates to `/login`,
-which does not exist yet, so it lands on the 404. That resolves itself when the
-login screen ships.
+### "Remember me" — removed pending `/auth/refresh`
+
+The login form had a "Remember me" checkbox. It is gone: the access token lives
+in React state, so nothing survives a page load and the control could not do
+anything. Staying signed in across a refresh is a backend concern — an httpOnly
+refresh cookie and `POST /auth/refresh` (`docs/api-contract.md` §3), not a
+client-side box to tick.
+
+Bring it back when refresh lands, and only if it then changes behaviour.
+
+### 4 tests red — `LoginPage.test.jsx`
+
+All four cases fail with `useAuth must be used inside <AuthProvider>`. The test
+renders `<LoginPage />` bare in a `MemoryRouter`, which was enough when submit
+was a fake 1.2s delay. It now needs an `AuthProvider`, a `QueryClientProvider`
+and MSW, and two of its cases still assert on the removed "Remember me"
+checkbox.
+
+Left red deliberately rather than half-fixed. To be sorted out with the MSW test
+setup — `src/mocks/server.js` via `setupServer`, wired into `src/test/setup.js`,
+plus a render helper that wraps the providers.
+
+### Row actions render but do nothing — customers, and everything copied from it
+
+`CustomerListPage` renders Edit and Delete in the row menu. Neither works:
+
+- **Edit** calls `navigate('/customers/:id/edit')`, and `customerRoutes` exports
+  only `{ path: '/customers' }`. There is no detail route and no edit route, so
+  the click falls through to the catch-all and renders the 404 page inside the
+  shell.
+- **Delete** is `onClick: () => {}` — no confirm, no request, no feedback. It
+  looks like a no-op bug from the user's side, because it is one.
+
+The detail, edit and delete flows were never built in the reference module. That
+matters more than one module's gap: `orders` was copied from it and has the
+identical pair — `navigate('/orders/:id/edit')` against a single `/orders`
+route, and an empty Delete handler. `invoices` carries it too. Any module copied
+from the reference inherits both until the reference is finished.
+
+Owned by B. The row actions should either be wired or removed — a menu entry
+that silently does nothing is worse than an absent one.
+
+### Invoices is not registered
+
+`src/app/registry.js` imports `orders` but holds `invoices` out, commented with
+a `TODO(B)`. Registering it fails the build:
+
+```
+"invoiceKeys" is not exported by "src/modules/invoices/api.js",
+imported by "src/modules/invoices/pages/InvoiceListPage.jsx"
+```
+
+`src/modules/invoices/api.js` is still the copied customers file — the header
+reads "Customers API", `RESOURCE` is `'/customers'`, and it exports
+`customerKeys` / `fetchCustomers` rather than the `invoice*` names the page
+imports. That module's `index.js` and `handlers.js` are already correct, so the
+fix is confined to `api.js`: rename `RESOURCE`, the key namespace, and the six
+CRUD functions. Then uncomment the import and the three spreads in the registry.
+
+Until that lands, invoices has no route, no nav entry, and no mock handlers.
+
+### DataTable still has its own inline skeletons
+
+`<Skeleton>` shipped, but `DataTable` does not use it. Two places still build
+their own placeholders inline:
+
+- the table body row, `h-3 w-full animate-pulse rounded-sm bg-bg` (~line 387)
+- the `MobileCards` card, `h-24 animate-pulse rounded-md ...` (~line 469)
+
+Both differ from the component in ways that matter. They use plain
+`animate-pulse`, which the global rule in `styles/tailwind.css` only clamps to
+`0.01ms` — the animation is frozen rather than absent, where `<Skeleton>` uses
+`motion-safe:` and removes it outright under `prefers-reduced-motion`. The row
+bar is also `bg-bg`, which only reads against `bg-surface`, where the component
+uses `bg-border` and works on either ground.
+
+Left as a deliberate follow-up rather than folded into the component work:
+swapping them changes the loading appearance of every list page in the app, so
+it deserves its own change and its own look.
+
+### KPICard trend has no polarity — needs a group decision
+
+The locked signature in `docs/components.md` gives the trend a direction and
+nothing else:
+
+```jsx
+trend={{ value: 12.4, direction: 'up', label: 'vs last month' }}
+```
+
+So `up` renders green and `down` renders red, always. That is backwards for
+every metric where a rise is bad news — outstanding balance, overdue invoices,
+low stock, days sales outstanding. The dashboard is exactly the screen that will
+show those, in cards sitting next to ones where up genuinely is good.
+
+The component cannot fix this on its own; the signature has nowhere to put the
+answer. It needs a `polarity` or `intent` prop agreed by all three and written
+into `docs/components.md` **before** the dashboard uses `KPICard`, because
+changing it afterwards means revisiting every card already placed.
+
+Related and smaller: `trend.value` is rendered as a percentage — `12.4` shows as
+`12.4%`. The doc does not say that anywhere. It is the only reading that makes
+sense next to `label: 'vs last month'`, but it is an inference, and it should be
+stated in the signature rather than left for the next person to rediscover.
+
+### FormTextarea has no character counter
+
+`FormTextarea` delegates to `FormField`, which already renders a `<textarea>`
+when `type="textarea"`. That keeps one textarea implementation in the kit
+instead of two that can drift, and `maxLength` passes straight through.
+
+The cost is that setting `maxLength` gives no character counter — the input
+simply stops accepting characters, with nothing telling the user why. Adding one
+means abandoning the delegation and writing `FormTextarea` standalone, at which
+point the kit has two textareas to keep in step. Deliberate trade, recorded so
+the next person does not "fix" the delegation without knowing what it bought.
+
+### FieldShell — extract when the remaining form components land
+
+The label / hint / error block is now in four copies: `FormField`, `FormSelect`,
+`FormMoney` and `FormCheckbox`. Each carries the same `useId`, the same
+`hintId`/`errorId` pair, the same `describedBy` join, the same `<label>` with its
+required asterisk, and the same two trailing `<p>` tags.
+
+Not extracted yet, on purpose — it would mean editing `FormField` and
+`FormSelect`, which B and C already import, to pay for two new components.
+
+The right moment is when `FormDate`, `FormSection`, `FormRow` and `FormActions`
+land. That is four more copies, and a shared `FieldShell` then pays for itself
+across eight components rather than two. Recorded so it is not rediscovered from
+scratch.
 
 ### `format.js` whitespace lint errors
 
@@ -253,7 +386,8 @@ latest v6, and it is still in range.
 
 - `src/pages/KitchenSinkPage.jsx` and its `/kitchen-sink` route — the kit
   reference page.
-- `STUB_USER` in `src/app/providers.jsx`, as above.
+- The seed accounts and plaintext passwords in `src/mocks/authHandlers.js` —
+  they go with the rest of MSW when the real auth service lands.
 - The `demo-server-error` and `demo-validation-error` handlers in
   `src/modules/customers/handlers.js` are **not** in this list. They are how
   error states get tested and they stay until the real backend does.
