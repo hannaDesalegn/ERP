@@ -21,15 +21,13 @@ import { delay, serverError } from './helpers';
 const BASE = '/api/dashboard';
 
 /**
- * The four cards, each carrying its trend in the shape KPICard takes: a
- * magnitude, a direction, and the comparison spelled out in the label.
+ * The six cards, each carrying its trend in the shape KPICard takes: a
+ * magnitude, a direction, whether that direction is good news, and the
+ * comparison spelled out in the label.
  *
- * All four are metrics where a rise is good news, which is the only reason
- * KPICard's direction-decides-the-colour behaviour is right for them.
- * Outstanding balance and overdue invoices are deliberately not here: up is bad
- * news for both, and the card would paint the rise green. That gap is open —
- * see the KPICard commit — and picking these four sidesteps it rather than
- * pretending it is closed.
+ * `isGood` is stated on outstanding balance and overdue invoices, the two where
+ * a rise is bad news. The other four leave it off — up is good for all of them,
+ * which is what the card renders by default.
  */
 const summary = {
   kpis: {
@@ -50,6 +48,29 @@ const summary = {
       value: 3798828, // revenueThisMonth / ordersThisMonth, floored
       currency: 'ETB',
       trend: { value: 1.6, direction: 'down', label: 'vs last month' },
+    },
+
+    // Held back until KPICard could express polarity. Both are money in minor
+    // units, like every other amount on the wire.
+    outstandingBalance: {
+      value: 120490000,
+      currency: 'ETB',
+      trend: {
+        value: 6.2,
+        direction: 'up',
+        isGood: false, // a growing debt is not good news
+        label: 'vs last month',
+      },
+    },
+    overdueInvoices: {
+      value: 31200000,
+      currency: 'ETB',
+      trend: {
+        value: 3.5,
+        direction: 'down',
+        isGood: true, // less overdue is good news
+        label: 'vs last month',
+      },
     },
   },
 

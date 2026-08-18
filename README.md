@@ -293,37 +293,6 @@ Left as a deliberate follow-up rather than folded into the component work:
 swapping them changes the loading appearance of every list page in the app, so
 it deserves its own change and its own look.
 
-### KPICard trend has no polarity — needs a group decision
-
-The locked signature in `docs/components.md` gives the trend a direction and
-nothing else:
-
-```jsx
-trend={{ value: 12.4, direction: 'up', label: 'vs last month' }}
-```
-
-So `up` renders green and `down` renders red, always. That is backwards for
-every metric where a rise is bad news — outstanding balance, overdue invoices,
-low stock, days sales outstanding. The dashboard is exactly the screen that will
-show those, in cards sitting next to ones where up genuinely is good.
-
-The component cannot fix this on its own; the signature has nowhere to put the
-answer. It needs a `polarity` or `intent` prop agreed by all three and written
-into `docs/components.md`.
-
-The dashboard shipped before that decision, and works around it rather than
-pre-empting it: all four of its cards are metrics where a rise is good news —
-revenue this month, orders this month, active customers, average order value —
-so direction-as-colour is correct for every one of them. **Outstanding balance
-and overdue invoices stay off the dashboard until polarity is settled**, because
-those are exactly the cards that would paint a growing debt green. Adding them
-is blocked on the decision, not on the work.
-
-Related and smaller: `trend.value` is rendered as a percentage — `12.4` shows as
-`12.4%`. The doc does not say that anywhere. It is the only reading that makes
-sense next to `label: 'vs last month'`, but it is an inference, and it should be
-stated in the signature rather than left for the next person to rediscover.
-
 ### FormTextarea has no character counter
 
 `FormTextarea` delegates to `FormField`, which already renders a `<textarea>`
@@ -363,11 +332,12 @@ The hook needs one line, `cd frontend && npx lint-staged`; the `cd` is required
 because git runs hooks from the repo root and the package lives in `frontend/`.
 Alternatively a root `package.json` could own husky instead.
 
-### Restart the dev server after pulling new MSW handlers
+### Restart the dev server after any MSW handler change
 
-After pulling changes that add or modify MSW handlers, restart the dev server.
-The service worker is registered at startup and does not pick up new handler
-files.
+Whenever a handler file changes, restart the dev server — pulling someone
+else's changes, or editing your own. The service worker is registered at
+startup, and handler edits do not reach it through HMR the way component edits
+reach the page.
 
 It shows as **"The server returned an unreadable response" on every API call**,
 including login, which reads like broken auth rather than a stale worker. The
@@ -377,7 +347,9 @@ anything MSW does not intercept is forwarded to `VITE_API_PROXY_TARGET`
 body is not JSON — so `apiClient` reports it as unparseable rather than as a
 missing mock.
 
-Not a bug. Recorded because it cost twenty minutes to diagnose once already.
+Not a bug. Recorded because it cost twenty minutes to diagnose the first time —
+after pulling C's operations modules — and caught someone again straight away
+while editing `dashboardHandlers.js`.
 
 ### Outstanding `npm audit` advisories
 

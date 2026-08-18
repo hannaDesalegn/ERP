@@ -1,17 +1,25 @@
 /**
  * Dashboard — owned by A. The landing page for every signed-in user.
  *
- * Four KPI cards and a recent-activity table, from one request. Kit components
+ * Six KPI cards and a recent-activity table, from one request. Kit components
  * only: PageHeader, KPICard, DataTable.
  *
- * The four metrics are the ones where a rise is good news. KPICard colours its
- * trend from `direction` alone — it has no notion of whether up is good for a
- * given metric — so outstanding balance and overdue invoices stay off this page
- * until that is settled. Adding them now would paint a growing debt green.
+ * Outstanding balance and overdue invoices were held off this page until
+ * KPICard could express polarity. It can now: their trends carry `isGood`, so a
+ * rising debt renders red and a falling overdue total renders green. The other
+ * four leave `isGood` off — up is good news for all of them, which is what the
+ * card does by default.
  */
 
 import { useQuery } from '@tanstack/react-query';
-import { Banknote, Receipt, ShoppingCart, Users } from 'lucide-react';
+import {
+  Banknote,
+  FileWarning,
+  Receipt,
+  ShoppingCart,
+  Users,
+  Wallet,
+} from 'lucide-react';
 
 import { DataTable, KPICard, PageHeader } from '@/components/ui';
 import { apiClient } from '@/lib/apiClient';
@@ -109,6 +117,26 @@ export function DashboardPage() {
       ),
       trend: kpis?.averageOrderValue.trend,
     },
+    {
+      key: 'outstanding',
+      title: 'Outstanding balance',
+      icon: Wallet,
+      value: formatMoney(
+        kpis?.outstandingBalance.value,
+        kpis?.outstandingBalance.currency,
+      ),
+      trend: kpis?.outstandingBalance.trend,
+    },
+    {
+      key: 'overdue',
+      title: 'Overdue invoices',
+      icon: FileWarning,
+      value: formatMoney(
+        kpis?.overdueInvoices.value,
+        kpis?.overdueInvoices.currency,
+      ),
+      trend: kpis?.overdueInvoices.trend,
+    },
   ];
 
   const activity = data?.recentActivity ?? [];
@@ -122,7 +150,7 @@ export function DashboardPage() {
         description="Where the business stands today."
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map((card) => (
           <KPICard
             key={card.key}

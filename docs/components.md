@@ -267,9 +267,15 @@ Unknown status → `neutral` plus a console warning. If you add a status to
 `entities.md`, tell A to map it.
 
 ```jsx
-<KPICard title="Outstanding" value="ETB 1,204,900" icon={Wallet}
-         trend={{ value: 12.4, direction: 'up', label: 'vs last month' }}
+<KPICard title="Revenue this month" value="ETB 4,862,500" icon={Banknote}
+         trend={{ value: 8.4, direction: 'up', label: 'vs last month' }}
          loading={} onClick={} />
+
+// A metric where up is bad news: the balance rose, so the trend renders red
+// while the arrow still points up.
+<KPICard title="Outstanding" value="ETB 1,204,900" icon={Wallet}
+         trend={{ value: 12.4, direction: 'up', isGood: false,
+                  label: 'vs last month' }} />
 
 <EmptyState icon={Users} title="No customers yet"
             description="Customers you add will appear here."
@@ -285,6 +291,15 @@ Unknown status → `neutral` plus a console warning. If you add a status to
 <Button variant="primary|secondary|ghost|destructive" size="sm|md|lg"
         loading={} icon={} iconPosition="left" disabled={} />
 ```
+
+`KPICard`'s `trend.value` renders as a percentage — `12.4` shows as `12.4%`.
+
+`trend.isGood` is optional and decides the colour outright: `true` is success,
+`false` is danger. Omit it and `direction` decides — up green, down red — which
+is what every card did before the field existed, so nothing already written
+needs editing. Set it on any metric where a rise is bad news: outstanding
+balance, overdue invoices, low stock, days sales outstanding. The arrow always
+follows `direction`; only the colour follows `isGood`.
 
 ### Empty state copy
 

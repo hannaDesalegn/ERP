@@ -452,19 +452,33 @@ export function KitchenSinkPage() {
 
       <Section title="KPICard">
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {/* Up on a debt is bad news: isGood false paints it red while the
+              arrow still points up. */}
           <KPICard
             title="Outstanding"
             value={formatMoney(120490000, 'ETB')}
             icon={Wallet}
-            trend={{ value: 12.4, direction: 'up', label: 'vs last month' }}
+            trend={{
+              value: 12.4,
+              direction: 'up',
+              isGood: false,
+              label: 'vs last month',
+            }}
           />
-          {/* No icon, on purpose — icon is optional. */}
+          {/* No icon, on purpose — icon is optional. A fall in overdue is good
+              news, so isGood true paints the decrease green. */}
           <KPICard
             title="Overdue invoices"
             value={formatMoney(31200000, 'ETB')}
-            trend={{ value: 4.1, direction: 'down', label: 'vs last month' }}
+            trend={{
+              value: 4.1,
+              direction: 'down',
+              isGood: true,
+              label: 'vs last month',
+            }}
           />
           <KPICard title="Active customers" value="1,204" icon={Users} />
+          {/* No isGood — the fallback, where direction alone decides. */}
           <KPICard
             title="Collected this month"
             value={formatMoney(88300000, 'ETB')}
@@ -482,10 +496,12 @@ export function KitchenSinkPage() {
           Skeleton rather than a second pulse.
         </p>
         <p className="text-xs text-text-muted">
-          Colour follows <span className="font-mono">trend.direction</span> only
-          — up is always green. On &ldquo;Overdue invoices&rdquo; that is
-          backwards, and the locked signature cannot express it. See README §
-          Known gaps.
+          <span className="font-mono">trend.isGood</span> decides the colour —
+          true green, false red — and the arrow keeps following{' '}
+          <span className="font-mono">direction</span> either way, so
+          &ldquo;Outstanding&rdquo; above is a red arrow pointing up. Omit the
+          field and direction decides, which is what &ldquo;Collected this
+          month&rdquo; shows and what every card written before it still does.
         </p>
       </Section>
 
