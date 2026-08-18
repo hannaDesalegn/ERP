@@ -309,8 +309,15 @@ show those, in cards sitting next to ones where up genuinely is good.
 
 The component cannot fix this on its own; the signature has nowhere to put the
 answer. It needs a `polarity` or `intent` prop agreed by all three and written
-into `docs/components.md` **before** the dashboard uses `KPICard`, because
-changing it afterwards means revisiting every card already placed.
+into `docs/components.md`.
+
+The dashboard shipped before that decision, and works around it rather than
+pre-empting it: all four of its cards are metrics where a rise is good news —
+revenue this month, orders this month, active customers, average order value —
+so direction-as-colour is correct for every one of them. **Outstanding balance
+and overdue invoices stay off the dashboard until polarity is settled**, because
+those are exactly the cards that would paint a growing debt green. Adding them
+is blocked on the decision, not on the work.
 
 Related and smaller: `trend.value` is rendered as a percentage — `12.4` shows as
 `12.4%`. The doc does not say that anywhere. It is the only reading that makes
@@ -329,30 +336,17 @@ means abandoning the delegation and writing `FormTextarea` standalone, at which
 point the kit has two textareas to keep in step. Deliberate trade, recorded so
 the next person does not "fix" the delegation without knowing what it bought.
 
-### FieldShell — extract when the remaining form components land
+### FieldShell — done, ahead of the trigger this entry set
 
-The label / hint / error block is now in four copies: `FormField`, `FormSelect`,
-`FormMoney` and `FormCheckbox`. Each carries the same `useId`, the same
-`hintId`/`errorId` pair, the same `describedBy` join, the same `<label>` with its
-required asterisk, and the same two trailing `<p>` tags.
+Extracted in `f094cdb`, before `FormDate`, `FormSection`, `FormRow` and
+`FormActions` landed rather than after — four copies of the label / hint / error
+block were already enough, and the four still to come now build on the shell
+instead of adding four more copies to migrate later.
 
-Not extracted yet, on purpose — it would mean editing `FormField` and
-`FormSelect`, which B and C already import, to pay for two new components.
-
-The right moment is when `FormDate`, `FormSection`, `FormRow` and `FormActions`
-land. That is four more copies, and a shared `FieldShell` then pays for itself
-across eight components rather than two. Recorded so it is not rediscovered from
-scratch.
-
-### `format.js` whitespace lint errors
-
-`npm run lint` reports two `no-irregular-whitespace` errors in
-`src/lib/format.js`. Two regex character classes contain literal non-breaking
-space characters (U+00A0) where an escape sequence should be.
-
-Runtime behaviour is correct and the build is unaffected — `formatMoney` strips
-the non-breaking spaces Intl inserts, which is what those regexes are for. But
-**lint is red**, so CI cannot gate on it until this is fixed. One-line change.
+`FieldShell.jsx` is kit-internal, not exported from `index.js`, and all four
+existing controls render through it with unchanged DOM. Nothing here is
+outstanding; the entry stays only so the plan it used to describe is not
+carried out a second time.
 
 ### No husky pre-commit hook
 

@@ -33,9 +33,16 @@ function exponentFor(currency) {
   return MINOR_UNIT_EXPONENT[String(currency).toUpperCase()] ?? 2;
 }
 
-/** Intl inserts U+00A0 between code and number; normalise so output is greppable. */
+/**
+ * Intl separates code from number with a no-break space — U+00A0, or U+202F in
+ * some locales. Normalise both to a plain space so output is greppable.
+ *
+ * Written as escapes rather than the literal characters: they are invisible in
+ * an editor, indistinguishable from a normal space in review, and eslint's
+ * no-irregular-whitespace rejects them outright.
+ */
 function normaliseSpaces(value) {
-  return value.replace(/[  ]/g, ' ');
+  return value.replace(/[\u00A0\u202F]/g, ' ');
 }
 
 /**
@@ -84,7 +91,10 @@ export function parseMoney(input, currency = 'ETB') {
   if (input === null || input === undefined || input === '') return null;
 
   const cleaned = String(input)
-    .replace(/[\s, ]/g, '')
+    // \s already covers every Unicode space separator, including the no-break
+    // spaces Intl emits — the literal U+00A0 that used to sit in this class was
+    // redundant as well as invisible.
+    .replace(/[\s,]/g, '')
     .replace(/[^0-9.-]/g, '');
   if (cleaned === '' || cleaned === '-' || cleaned === '.') return null;
 

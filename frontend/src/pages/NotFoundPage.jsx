@@ -28,8 +28,8 @@ export function NotFoundPage() {
       </div>
 
       {/* Button renders a <button>, so navigate rather than nesting a <Link>. */}
-      <Button variant="secondary" onClick={() => navigate('/')}>
-        Back to Customers
+      <Button variant="secondary" onClick={() => navigate('/dashboard')}>
+        Back to dashboard
       </Button>
     </div>
   );
