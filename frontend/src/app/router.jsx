@@ -17,6 +17,7 @@ import { ForbiddenPage } from '@/pages/ForbiddenPage';
 import { KitchenSinkPage } from '@/pages/KitchenSinkPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
+import { SettingsPage } from '@/pages/SettingsPage';
 import { UsersPage } from '@/pages/UsersPage';
 
 import { moduleRoutes } from './registry';
@@ -46,6 +47,15 @@ export const router = createBrowserRouter([
         element: (
           <RequireRole roles={['admin']}>
             <UsersPage />
+          </RequireRole>
+        ),
+      },
+
+      {
+        path: '/settings',
+        element: (
+          <RequireRole roles={['admin']}>
+            <SettingsPage />
           </RequireRole>
         ),
       },

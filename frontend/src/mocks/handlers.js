@@ -10,14 +10,15 @@ import { moduleHandlers } from '@/app/registry';
 
 import { authHandlers } from './authHandlers';
 import { dashboardHandlers } from './dashboardHandlers';
+import { settingsHandlers } from './settingsHandlers';
 import { roleHandlers, userHandlers } from './userHandlers';
 
-// TODO(A): settings still to come.
 const foundationHandlers = [
   ...authHandlers,
   ...dashboardHandlers,
   ...userHandlers,
   ...roleHandlers,
+  ...settingsHandlers,
 ];
 
 export const handlers = [...foundationHandlers, ...moduleHandlers];

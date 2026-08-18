@@ -8,7 +8,7 @@
  * See README § Registry pattern.
  */
 
-import { LayoutDashboard, UserCog } from 'lucide-react';
+import { LayoutDashboard, Settings, UserCog } from 'lucide-react';
 
 import {
   customerHandlers,
@@ -16,11 +16,7 @@ import {
   customerRoutes,
 } from '@/modules/customers';
 import { orderHandlers, orderNav, orderRoutes } from '@/modules/orders';
-import {
-  productHandlers,
-  productNav,
-  productRoutes,
-} from '@/modules/products';
+import { productHandlers, productNav, productRoutes } from '@/modules/products';
 import {
   purchasingHandlers,
   purchasingNav,
@@ -88,6 +84,12 @@ export const moduleNav = [
     icon: UserCog,
     path: '/users',
     permission: 'users.view',
+  },
+  {
+    label: 'Settings',
+    icon: Settings,
+    path: '/settings',
+    permission: 'settings.view',
   },
 ];
 
