@@ -26,9 +26,13 @@ import {
   DataTable,
   Drawer,
   EmptyState,
+  FormActions,
   FormCheckbox,
+  FormDate,
   FormField,
   FormMoney,
+  FormRow,
+  FormSection,
   FormSelect,
   FormTextarea,
   KPICard,
@@ -247,6 +251,28 @@ export function KitchenSinkPage() {
       setCategories(CATEGORY_OPTIONS);
       setCategoriesLoading(false);
     }, 1200);
+  };
+
+  // FormDate
+  const [orderDate, setOrderDate] = useState('2026-08-18');
+  const [deliveryDate, setDeliveryDate] = useState('');
+  // Plain string comparison is safe on YYYY-MM-DD, which is the only shape
+  // <input type="date"> emits.
+  const deliveryError =
+    deliveryDate && deliveryDate < orderDate
+      ? 'Delivery cannot be before the order date.'
+      : undefined;
+
+  // FormSection / FormRow / FormActions
+  const [formSaving, setFormSaving] = useState(false);
+  const submitDemoForm = (event) => {
+    event.preventDefault();
+    setFormSaving(true);
+    setLastAction('Form submitted');
+    later(() => {
+      setFormSaving(false);
+      toast.success('Saved Acme Trading PLC');
+    }, 1500);
   };
 
   // Modal / ConfirmDialog
@@ -661,6 +687,119 @@ export function KitchenSinkPage() {
           Label sits beside the box rather than above it. Works with{' '}
           <span className="font-mono">register</span> — RHF reads{' '}
           <span className="font-mono">event.target.checked</span>.
+        </p>
+      </Section>
+
+      <Section title="FormDate">
+        <div className="grid gap-4 md:grid-cols-2">
+          <FormDate
+            label="Order date"
+            name="orderDate"
+            value={orderDate}
+            onChange={(event) => setOrderDate(event.target.value)}
+            required
+            hint="Stored and emitted as YYYY-MM-DD."
+          />
+          {/* min is the order date, so the picker itself refuses earlier days —
+              type a bad one anyway and the error below appears. */}
+          <FormDate
+            label="Expected delivery"
+            name="expectedDelivery"
+            value={deliveryDate}
+            onChange={(event) => setDeliveryDate(event.target.value)}
+            min={orderDate}
+            max="2027-12-31"
+            error={deliveryError}
+            hint="min is the order date; max is 2027-12-31."
+          />
+        </div>
+        <p className="text-xs text-text-muted">
+          Delegates to FormField with{' '}
+          <span className="font-mono">type=&quot;date&quot;</span>, so there is
+          one date input in the kit rather than two.{' '}
+          <span className="font-mono">min</span> and{' '}
+          <span className="font-mono">max</span> are not handled by the
+          component — they ride FormField&apos;s prop spread straight onto the
+          element.
+        </p>
+      </Section>
+
+      <Section title="FormSection, FormRow and FormActions">
+        {/* A real <form>, so FormActions' type="submit" is doing the
+            submitting: press Enter in any field and it fires the same handler
+            as the button. */}
+        <form
+          onSubmit={submitDemoForm}
+          className="flex flex-col gap-6 rounded-md border border-border bg-surface p-4"
+        >
+          <FormSection
+            title="Customer"
+            description="Who the invoice is addressed to."
+          >
+            <FormRow>
+              <FormField
+                label="Customer name"
+                name="sectionName"
+                defaultValue="Acme Trading PLC"
+              />
+              <FormField
+                label="TIN"
+                name="sectionTin"
+                defaultValue="0001234567"
+              />
+            </FormRow>
+
+            <FormRow columns={3}>
+              <FormField
+                label="City"
+                name="sectionCity"
+                defaultValue="Addis Ababa"
+              />
+              <FormField
+                label="Region"
+                name="sectionRegion"
+                defaultValue="Addis Ababa"
+              />
+              <FormField
+                label="Postal code"
+                name="sectionPostal"
+                defaultValue="1000"
+              />
+            </FormRow>
+          </FormSection>
+
+          {/* description is optional. */}
+          <FormSection title="Terms">
+            <FormRow>
+              <FormField
+                label="Payment terms (days)"
+                name="sectionTerms"
+                type="number"
+                defaultValue={30}
+              />
+              <FormField
+                label="Purchase order reference"
+                name="sectionPoRef"
+                placeholder="Optional"
+              />
+            </FormRow>
+          </FormSection>
+
+          <FormActions
+            submitLabel="Save customer"
+            onCancel={() => setLastAction('Form cancelled')}
+            loading={formSaving}
+          />
+        </form>
+
+        <p className="text-xs text-text-muted">
+          FormRow is one column below 768px whatever{' '}
+          <span className="font-mono">columns</span> says — narrow the window
+          and the three-across row stacks. Cancel is{' '}
+          <span className="font-mono">type=&quot;button&quot;</span>: clicking
+          it reports &ldquo;Form cancelled&rdquo; and never &ldquo;Form
+          submitted&rdquo;, which is the whole point of it not defaulting to
+          submit.
         </p>
       </Section>
 

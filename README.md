@@ -340,13 +340,17 @@ the next person does not "fix" the delegation without knowing what it bought.
 
 Extracted in `f094cdb`, before `FormDate`, `FormSection`, `FormRow` and
 `FormActions` landed rather than after — four copies of the label / hint / error
-block were already enough, and the four still to come now build on the shell
-instead of adding four more copies to migrate later.
+block were already enough on their own.
 
-`FieldShell.jsx` is kit-internal, not exported from `index.js`, and all four
-existing controls render through it with unchanged DOM. Nothing here is
-outstanding; the entry stays only so the plan it used to describe is not
-carried out a second time.
+`FieldShell.jsx` is kit-internal, not exported from `index.js`. `FormField`,
+`FormSelect`, `FormMoney` and `FormCheckbox` render through it with unchanged
+DOM, and `FormDate` inherits it by delegating to `FormField`. The other three
+never touch it and should not: `FormSection` has a heading rather than a label,
+`FormRow` is a grid and `FormActions` is two buttons, so none of them owns a
+control for the shell's generated id and `aria-describedby` to attach to.
+
+Nothing here is outstanding; the entry stays only so the plan it used to
+describe is not carried out a second time.
 
 ### No husky pre-commit hook
 
