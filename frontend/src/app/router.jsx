@@ -11,6 +11,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 import { ProtectedRoute } from '@/auth/ProtectedRoute';
 import { AppShell } from '@/layouts/AppShell';
+import { DashboardPage } from '@/pages/DashboardPage';
 import { ForbiddenPage } from '@/pages/ForbiddenPage';
 import { KitchenSinkPage } from '@/pages/KitchenSinkPage';
 import { LoginPage } from '@/pages/LoginPage';
@@ -31,8 +32,10 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
     children: [
-      // TODO(A), week 3: point this at /dashboard once that page exists.
-      { index: true, element: <Navigate to="/customers" replace /> },
+      { index: true, element: <Navigate to="/dashboard" replace /> },
+
+      // A's own page, so it sits here rather than coming from the registry.
+      { path: '/dashboard', element: <DashboardPage /> },
 
       // Every module's routes, collected by the registry.
       ...moduleRoutes,
