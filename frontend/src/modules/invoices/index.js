@@ -13,6 +13,7 @@ import { Receipt } from 'lucide-react';
 
 import { invoiceHandlers } from './handlers';
 import { InvoiceListPage } from './pages/InvoiceListPage';
+import { InvoiceFormPage } from './pages/InvoiceFormPage';
 
 /** Sidebar entry. `permission` hides it from users who lack the right. */
 export const invoiceNav = {
@@ -32,6 +33,8 @@ export const invoiceNav = {
  */
 export const invoiceRoutes = [
   { path: '/invoices', Component: InvoiceListPage },
+  { path: '/invoices/new', Component: InvoiceFormPage },
+  { path: '/invoices/:id/edit', Component: InvoiceFormPage },
 ];
 
 export { invoiceHandlers };

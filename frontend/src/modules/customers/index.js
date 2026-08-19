@@ -13,6 +13,7 @@ import { Users } from 'lucide-react';
 
 import { customerHandlers } from './handlers';
 import { CustomerListPage } from './pages/CustomerListPage';
+import { CustomerFormPage } from './pages/CustomerFormPage';
 
 /** Sidebar entry. `permission` hides it from users who lack the right. */
 export const customerNav = {
@@ -30,8 +31,10 @@ export const customerNav = {
  *
  * TODO(B): detail and form pages — /customers/:id and /customers/:id/edit.
  */
-export const customerRoutes = [
-  { path: '/customers', Component: CustomerListPage },
-];
+
+export const customerRoutes = [ 
+  { path: '/customers', Component: CustomerListPage }, 
+  { path: '/customers/new', Component: CustomerFormPage }, 
+  { path: '/customers/:id/edit', Component: CustomerFormPage }, ];
 
 export { customerHandlers };

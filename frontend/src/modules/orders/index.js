@@ -10,7 +10,7 @@
  */
 
 import {  ShoppingCart } from 'lucide-react';
-
+import { OrderFormPage } from './pages/OrderFormPage';
 import { orderHandlers } from './handlers';
 import { OrderListPage } from './pages/OrderListPage';
 
@@ -32,9 +32,10 @@ export const orderNav = {
  * TODO(B): detail and form pages — /orders/:id and /orders/:id/edit.
  */
 
-
 export const orderRoutes = [
-  { path: '/orders' , Component: OrderListPage },
+  { path: '/orders', Component: OrderListPage },
+  { path: '/orders/new', Component: OrderFormPage },
+  { path: '/orders/:id/edit', Component: OrderFormPage },
 ];
 
 export { orderHandlers };
