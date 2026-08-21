@@ -17,15 +17,17 @@
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { Pencil, Plus, Trash } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-import { Button, DataTable, PageHeader, StatusBadge } from '@/components/ui';
+import { Button, ConfirmDialog, DataTable, PageHeader, StatusBadge } from '@/components/ui';
+import { toast } from '@/components/ui/toast';
 import { formatMoney } from '@/lib/format';
 import { useTableParams } from '@/lib/useTableParams';
 
-import { invoiceKeys, fetchInvoices } from '../api';
+import { deleteInvoice, invoiceKeys, fetchInvoices } from '../api';
 
 const columns = [
   {
@@ -56,6 +58,11 @@ const columns = [
 
 export function InvoiceListPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  // The row pending delete, or null. Holding the whole row (not just an id)
+  // lets the confirm dialog show its invoice number without a second fetch.
+  const [pendingDelete, setPendingDelete] = useState(null);
 
   const {
     page,
@@ -76,6 +83,19 @@ export function InvoiceListPage() {
     queryKey: invoiceKeys.list(queryParams),
     queryFn: () => fetchInvoices(queryParams),
     placeholderData: (previous) => previous,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => deleteInvoice(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: invoiceKeys.lists() });
+      toast.success('Invoice deleted');
+      setPendingDelete(null);
+    },
+    onError: (err) => {
+      toast.error('Could not delete invoice', { description: err.message });
+      setPendingDelete(null);
+    },
   });
 
   const rows = data?.data ?? [];
@@ -121,12 +141,23 @@ export function InvoiceListPage() {
             icon: Trash,
             permission: 'invoices.delete',
             destructive: true,
-            onClick: () => {},
+            onClick: () => setPendingDelete(row),
           },
         ]}
         rowKey="id"
         stickyHeader
         density="comfortable"
+      />
+
+      <ConfirmDialog
+        open={Boolean(pendingDelete)}
+        onClose={() => setPendingDelete(null)}
+        onConfirm={() => deleteMutation.mutate(pendingDelete.id)}
+        title="Delete invoice?"
+        description={pendingDelete ? `This archives ${pendingDelete.invoiceNumber}.` : ''}
+        confirmLabel="Delete"
+        variant="destructive"
+        loading={deleteMutation.isPending}
       />
     </div>
   );

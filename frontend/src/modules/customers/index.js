@@ -14,7 +14,7 @@ import { Users } from 'lucide-react';
 import { customerHandlers } from './handlers';
 import { CustomerListPage } from './pages/CustomerListPage';
 import { CustomerFormPage } from './pages/CustomerFormPage';
-
+import { CustomerDetailPage } from './pages/CustomerDetailPage';
 /** Sidebar entry. `permission` hides it from users who lack the right. */
 export const customerNav = {
   label: 'Customers',
@@ -35,6 +35,8 @@ export const customerNav = {
 export const customerRoutes = [ 
   { path: '/customers', Component: CustomerListPage }, 
   { path: '/customers/new', Component: CustomerFormPage }, 
-  { path: '/customers/:id/edit', Component: CustomerFormPage }, ];
+  { path: '/customers/:id', Component: CustomerDetailPage } ,
+  { path: '/customers/:id/edit', Component: CustomerFormPage },
+  ];
 
 export { customerHandlers };

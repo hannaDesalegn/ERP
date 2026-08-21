@@ -17,28 +17,24 @@
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { Pencil, Plus, Trash } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-import { Button, DataTable, PageHeader, StatusBadge } from '@/components/ui';
+import { Button, ConfirmDialog, DataTable, PageHeader, StatusBadge } from '@/components/ui';
+import { toast } from '@/components/ui/toast';
 import { formatMoney } from '@/lib/format';
 import { useTableParams } from '@/lib/useTableParams';
 
-import { customerKeys, fetchCustomers } from '../api';
+import { customerKeys, deleteCustomer, fetchCustomers } from '../api';
 
-/**
- * Columns are plain data, so they stay out of the render path and can be
- * unit-tested. `render` is only for cells that need formatting or a component.
- */
 const columns = [
   {
     key: 'code',
     label: 'Code',
     sortable: true,
     width: '110px',
-    // Codes, SKUs and order numbers render mono — it makes them scannable in a
-    // dense table. docs/components.md § Design tokens.
     render: (row) => <span className="font-mono text-xs">{row.code}</span>,
   },
   { key: 'name', label: 'Name', sortable: true },
@@ -49,8 +45,6 @@ const columns = [
     label: 'Balance',
     sortable: true,
     align: 'right',
-    // Money is an integer in minor units. formatMoney is the only thing that
-    // turns it into something a human reads — never do arithmetic on the string.
     render: (row) => formatMoney(row.balance, row.currency),
   },
   {
@@ -62,9 +56,12 @@ const columns = [
 
 export function CustomerListPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  // 1. Table state lives in the URL, so /customers?page=2&status=active is
-  //    shareable and survives a refresh.
+  // The row pending delete, or null. Holding the whole row (not just an id)
+  // lets the confirm dialog show its name without a second fetch.
+  const [pendingDelete, setPendingDelete] = useState(null);
+
   const {
     page,
     perPage,
@@ -80,14 +77,23 @@ export function CustomerListPage() {
     filterKeys: ['status'],
   });
 
-  // 2. Server state. The key includes queryParams, so changing a filter is a
-  //    new cache entry rather than a refetch that clobbers the old one.
   const { data, isLoading, error } = useQuery({
     queryKey: customerKeys.list(queryParams),
     queryFn: () => fetchCustomers(queryParams),
-    // Keeps the previous page on screen while the next one loads, instead of
-    // flashing an empty table on every page change.
     placeholderData: (previous) => previous,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => deleteCustomer(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: customerKeys.lists() });
+      toast.success('Customer deleted');
+      setPendingDelete(null);
+    },
+    onError: (err) => {
+      toast.error('Could not delete customer', { description: err.message });
+      setPendingDelete(null);
+    },
   });
 
   const rows = data?.data ?? [];
@@ -95,9 +101,6 @@ export function CustomerListPage() {
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-4 p-6">
-      {/* No `breadcrumbs` prop — the shell's topbar derives the trail from the
-          URL, so passing them here would render two of them. PageHeader still
-          accepts the prop for any page rendered outside the shell. */}
       <PageHeader
         title="Customers"
         description="Everyone you invoice."
@@ -108,14 +111,11 @@ export function CustomerListPage() {
         }
       />
 
-      {/* 4. One component, driven by 1 and 2. */}
       <DataTable
         columns={columns}
         data={rows}
         loading={isLoading}
         error={error}
-        // Pagination is server-side: meta comes from the API, never from
-        // rows.length.
         page={meta.page}
         perPage={meta.perPage}
         total={meta.total}
@@ -127,9 +127,6 @@ export function CustomerListPage() {
         searchValue={search}
         onSearchChange={setSearch}
         onRowClick={(row) => navigate(`/customers/${row.id}`)}
-        // Actions carrying a permission the user lacks are hidden. Hidden, not
-        // secured — the server must reject the request too.
-        // docs/security-notes.md §2.
         rowActions={(row) => [
           {
             label: 'Edit',
@@ -142,13 +139,27 @@ export function CustomerListPage() {
             icon: Trash,
             permission: 'customers.delete',
             destructive: true,
-            // TODO(B): ConfirmDialog + useMutation once the kit ships one.
-            onClick: () => {},
+            onClick: () => setPendingDelete(row),
           },
         ]}
         rowKey="id"
         stickyHeader
         density="comfortable"
+      />
+
+      <ConfirmDialog
+        open={Boolean(pendingDelete)}
+        onClose={() => setPendingDelete(null)}
+        onConfirm={() => deleteMutation.mutate(pendingDelete.id)}
+        title="Delete customer?"
+        description={
+          pendingDelete
+            ? `This archives ${pendingDelete.name}. Existing orders are unaffected.`
+            : ''
+        }
+        confirmLabel="Delete"
+        variant="destructive"
+        loading={deleteMutation.isPending}
       />
     </div>
   );

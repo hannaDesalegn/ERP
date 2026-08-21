@@ -13,7 +13,7 @@ import {  ShoppingCart } from 'lucide-react';
 import { OrderFormPage } from './pages/OrderFormPage';
 import { orderHandlers } from './handlers';
 import { OrderListPage } from './pages/OrderListPage';
-
+import { OrderDetailPage } from './pages/OrderDetailPage';
 /** Sidebar entry. `permission` hides it from users who lack the right. */
 export const orderNav = {
   label: 'Orders',
@@ -35,6 +35,7 @@ export const orderNav = {
 export const orderRoutes = [
   { path: '/orders', Component: OrderListPage },
   { path: '/orders/new', Component: OrderFormPage },
+  { path: '/orders/:id', Component: OrderDetailPage },
   { path: '/orders/:id/edit', Component: OrderFormPage },
 ];
 

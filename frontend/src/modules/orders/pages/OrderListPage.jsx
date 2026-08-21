@@ -17,15 +17,17 @@
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { Pencil, Plus, Trash } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-import { Button, DataTable, PageHeader, StatusBadge } from '@/components/ui';
+import { Button, ConfirmDialog, DataTable, PageHeader, StatusBadge } from '@/components/ui';
+import { toast } from '@/components/ui/toast';
 import { formatMoney } from '@/lib/format';
 import { useTableParams } from '@/lib/useTableParams';
 
-import { orderKeys, fetchOrders } from '../api';
+import { deleteOrder, orderKeys, fetchOrders } from '../api';
 
 const columns = [
   {
@@ -53,9 +55,12 @@ const columns = [
 
 export function OrderListPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  // 1. Table state lives in the URL, so /orders?page=2&status=approved is
-  //    shareable and survives a refresh.
+  // The row pending delete, or null. Holding the whole row (not just an id)
+  // lets the confirm dialog show its order number without a second fetch.
+  const [pendingDelete, setPendingDelete] = useState(null);
+
   const {
     page,
     perPage,
@@ -71,12 +76,23 @@ export function OrderListPage() {
     filterKeys: ['status'],
   });
 
-  // 2. Server state. The key includes queryParams, so changing a filter is a
-  //    new cache entry rather than a refetch that clobbers the old one.
   const { data, isLoading, error } = useQuery({
     queryKey: orderKeys.list(queryParams),
     queryFn: () => fetchOrders(queryParams),
     placeholderData: (previous) => previous,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => deleteOrder(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: orderKeys.lists() });
+      toast.success('Order deleted');
+      setPendingDelete(null);
+    },
+    onError: (err) => {
+      toast.error('Could not delete order', { description: err.message });
+      setPendingDelete(null);
+    },
   });
 
   const rows = data?.data ?? [];
@@ -94,7 +110,6 @@ export function OrderListPage() {
         }
       />
 
-      {/* 4. One component, driven by 1 and 2. */}
       <DataTable
         columns={columns}
         data={rows}
@@ -123,13 +138,27 @@ export function OrderListPage() {
             icon: Trash,
             permission: 'orders.delete',
             destructive: true,
-            // TODO(B): ConfirmDialog + useMutation once the kit ships one.
-            onClick: () => {},
+            onClick: () => setPendingDelete(row),
           },
         ]}
         rowKey="id"
         stickyHeader
         density="comfortable"
+      />
+
+      <ConfirmDialog
+        open={Boolean(pendingDelete)}
+        onClose={() => setPendingDelete(null)}
+        onConfirm={() => deleteMutation.mutate(pendingDelete.id)}
+        title="Delete order?"
+        description={
+          pendingDelete
+            ? `This archives ${pendingDelete.orderNumber}. Linked invoices are unaffected.`
+            : ''
+        }
+        confirmLabel="Delete"
+        variant="destructive"
+        loading={deleteMutation.isPending}
       />
     </div>
   );
