@@ -15,6 +15,7 @@ import {
   customerNav,
   customerRoutes,
 } from '@/modules/customers';
+import { invoiceHandlers, invoiceNav, invoiceRoutes } from '@/modules/invoices';
 import { orderHandlers, orderNav, orderRoutes } from '@/modules/orders';
 import { productHandlers, productNav, productRoutes } from '@/modules/products';
 import {
@@ -28,25 +29,11 @@ import {
   supplierRoutes,
 } from '@/modules/suppliers';
 
-// Every module is registered except invoices, held out below.
-
-// TODO(B): invoices is held out of the registry — registering it breaks the
-// build. src/modules/invoices/api.js is still the copied customers file: it
-// exports customerKeys/fetchCustomers against RESOURCE = '/customers', but
-// InvoiceListPage.jsx imports { invoiceKeys, fetchInvoices }. Rename the
-// exports and the RESOURCE, then uncomment the import and the three spreads
-// below. index.js and handlers.js are already correct.
-// import {
-//   invoiceHandlers,
-//   invoiceNav,
-//   invoiceRoutes,
-// } from '@/modules/invoices';
-
 /** @type {import('react-router-dom').RouteObject[]} */
 export const moduleRoutes = [
   ...customerRoutes,
   ...orderRoutes,
-  // ...invoiceRoutes,
+  ...invoiceRoutes,
   ...productRoutes,
   ...supplierRoutes,
   ...purchasingRoutes,
@@ -72,7 +59,7 @@ export const moduleNav = [
   },
   customerNav,
   orderNav,
-  // invoiceNav,
+  invoiceNav,
   productNav,
   supplierNav,
   purchasingNav,
@@ -97,7 +84,7 @@ export const moduleNav = [
 export const moduleHandlers = [
   ...customerHandlers,
   ...orderHandlers,
-  // ...invoiceHandlers,
+  ...invoiceHandlers,
   ...productHandlers,
   ...supplierHandlers,
   ...purchasingHandlers,
