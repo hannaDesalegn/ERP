@@ -7,10 +7,16 @@
  * security control — it exists so the real login flow can be built and tested
  * before the backend does. See docs/security-notes.md § Token handling.
  *
- * Response shapes here are flat (`{ token, user }`, `{ message }`) rather than
- * the `{ data }` / `{ error }` envelope every other endpoint uses. That is the
- * agreed contract for auth specifically; apiClient tolerates both. Flagged in
- * docs/api-contract.md §3 so the backend team implements the same thing.
+ * Success responses use the same `{ data }` envelope as the real backend —
+ * `{ data: { user, accessToken } }` from login, `{ data: user }` from /me, per
+ * docs/api-contract.md §3. They did not always: auth was flat once, and
+ * AuthContext had to unwrap one shape or the other. Both paths answering
+ * identically is what lets the frontend run on mocks or on the backend without
+ * a line changing.
+ *
+ * Errors are still flat `{ message }` where the backend sends
+ * `{ error: { code, message } }`. apiClient reads both, so this is a remaining
+ * difference rather than a break.
  */
 
 import { http, HttpResponse } from 'msw';
@@ -213,7 +219,9 @@ export const authHandlers = [
     // The real server stamps this; the mock keeps it truthful for the session.
     user.lastLoginAt = new Date().toISOString();
 
-    return HttpResponse.json({ token: tokenFor(user), user: publicUser(user) });
+    return HttpResponse.json({
+      data: { user: publicUser(user), accessToken: tokenFor(user) },
+    });
   }),
 
   http.get(`${BASE}/me`, async ({ request }) => {
@@ -227,7 +235,7 @@ export const authHandlers = [
       );
     }
 
-    return HttpResponse.json({ user: publicUser(user) });
+    return HttpResponse.json({ data: publicUser(user) });
   }),
 
   // 204 even without a valid token: logging out is never an error, and a

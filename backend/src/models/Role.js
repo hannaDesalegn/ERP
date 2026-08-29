@@ -2,6 +2,12 @@ import mongoose from 'mongoose';
 
 const roleSchema = new mongoose.Schema(
   {
+    // The stable identifier the frontend matches on — <RequireRole
+    // roles={['admin']}> and every permission check compare against this, not
+    // against _id and not against the display name. Renaming a role must not
+    // break authorisation, which is why the two are separate fields.
+    slug: { type: String, required: true, unique: true, trim: true, lowercase: true },
+    // The human-readable label, e.g. 'Administrator'. Display only.
     name: { type: String, required: true, unique: true, trim: true },
     description: { type: String, default: null },
     // Permission strings, "resource.action" — see docs/entities.md.

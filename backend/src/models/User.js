@@ -1,8 +1,14 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 
+// roleId below refs 'Role' by name, and populate() resolves that name through
+// Mongoose's model registry — so Role must have been imported before any
+// populate runs, or it throws MissingSchemaError. Importing it here ties that to
+// the schema declaring the ref instead of leaving every caller to remember.
+import './Role.js';
+
 // security-notes.md §4: bcrypt cost 12 or higher.
-const BCRYPT_ROUNDS = 12;
+export const BCRYPT_ROUNDS = 12;
 
 const userSchema = new mongoose.Schema(
   {
@@ -42,7 +48,14 @@ userSchema.set('toJSON', {
   transform(doc, ret) {
     const role = doc.populated('roleId') ? doc.roleId : null;
 
-    ret.roleId = role ? role.id : String(ret.roleId);
+    // The slug, not the ObjectId — entities.md's User.roleId is the role's
+    // stable name and the frontend matches on it directly.
+    //
+    // The unpopulated fallback still yields an ObjectId, which nothing will
+    // match. Every path that serves a user populates the role (requireAuth and
+    // login both do), so this stays a fallback; it is a landmine for whoever
+    // adds a path that doesn't.
+    ret.roleId = role ? role.slug : String(ret.roleId);
     ret.roleName = role ? role.name : null;
     ret.permissions = role ? role.permissions : [];
 
