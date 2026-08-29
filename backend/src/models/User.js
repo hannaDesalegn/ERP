@@ -1,8 +1,14 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 
+// roleId below refs 'Role' by name, and populate() resolves that name through
+// Mongoose's model registry — so Role must have been imported before any
+// populate runs, or it throws MissingSchemaError. Importing it here ties that to
+// the schema declaring the ref instead of leaving every caller to remember.
+import './Role.js';
+
 // security-notes.md §4: bcrypt cost 12 or higher.
-const BCRYPT_ROUNDS = 12;
+export const BCRYPT_ROUNDS = 12;
 
 const userSchema = new mongoose.Schema(
   {
