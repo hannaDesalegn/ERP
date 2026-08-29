@@ -1,3 +1,4 @@
+import customerRoutes from './routes/customers.js';
 import express from 'express';
 import cors from 'cors';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
@@ -17,6 +18,7 @@ app.get('/api/health', (req, res) => {
   res.json({ data: { ok: true } });
 });
 
+app.use('/api/customers',customerRoutes);
 // Routes mount above this line.
 app.use(notFoundHandler);
 app.use(errorHandler); // must stay last
