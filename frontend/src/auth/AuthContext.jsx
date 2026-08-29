@@ -58,11 +58,13 @@ export function AuthProvider({ children }) {
    * @returns {Promise<object>} the signed-in user
    */
   const login = useCallback(async ({ email, password }) => {
-    const result = await apiClient.post('/auth/login', { email, password });
+    // api-contract.md §3: { data: { user, accessToken } }. apiClient hands back
+    // the envelope untouched — other callers rely on that — so unwrap here.
+    const { data } = await apiClient.post('/auth/login', { email, password });
 
-    setToken(result.token);
-    setUser(result.user);
-    return result.user;
+    setToken(data.accessToken);
+    setUser(data.user);
+    return data.user;
   }, []);
 
   /**

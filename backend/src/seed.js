@@ -55,13 +55,15 @@ const ALL_PERMISSIONS = [
 
 const ROLES = [
   {
-    name: 'admin',
+    slug: 'admin',
+    name: 'Administrator',
     description: 'Full access to every module.',
     permissions: ALL_PERMISSIONS,
     isSystem: true,
   },
   {
-    name: 'manager',
+    slug: 'manager',
+    name: 'Manager',
     description: 'Customers and reports.',
     permissions: [
       'dashboard.view',
@@ -74,7 +76,8 @@ const ROLES = [
     isSystem: false,
   },
   {
-    name: 'staff',
+    slug: 'staff',
+    name: 'Staff',
     description: 'Dashboard and customers, read only.',
     permissions: ['dashboard.view', 'customers.view'],
     isSystem: false,
@@ -107,31 +110,45 @@ const USERS = [
   },
 ];
 
-/** @returns {Promise<Map<string, import('mongoose').Document>>} role by name */
+/** @returns {Promise<Map<string, import('mongoose').Document>>} role by slug */
 async function seedRoles() {
-  const byName = new Map();
+  const bySlug = new Map();
 
   for (const spec of ROLES) {
-    let role = await Role.findOne({ name: spec.name });
+    // Match on slug, falling back to the name — rows seeded before slug
+    // existed put what is now the slug in name. Finding the existing document
+    // is the point: users reference the role by _id, so creating a second one
+    // would leave every seeded user pointing at the abandoned row.
+    let role =
+      (await Role.findOne({ slug: spec.slug })) ??
+      (await Role.findOne({ name: spec.slug }));
 
     if (role) {
       // Permissions are the field that drifts, so a re-run refreshes them.
       // The _id stays put, which is what keeps existing users pointing at it.
       role.set(spec);
       await role.save();
-      console.log(`role ${spec.name}: updated`);
+      console.log(`role ${spec.slug}: updated`);
     } else {
       role = await Role.create(spec);
-      console.log(`role ${spec.name}: created`);
+      console.log(`role ${spec.slug}: created`);
     }
 
-    byName.set(spec.name, role);
+    bySlug.set(spec.slug, role);
   }
 
-  return byName;
+  // slug arrived after these rows did, so the unique index on it cannot build
+  // while three of them still have no slug — Mongo sees three nulls and
+  // rejects it, and the failure surfaces on an event rather than as a thrown
+  // error, leaving the constraint quietly absent. Rebuilding here, once the
+  // backfill above is committed, is the point at which it can succeed.
+  await Role.syncIndexes();
+  console.log('role indexes: synced');
+
+  return bySlug;
 }
 
-async function seedUsers(rolesByName) {
+async function seedUsers(rolesBySlug) {
   for (const spec of USERS) {
     if (await User.exists({ email: spec.email })) {
       // Left alone rather than reset: a re-run must not clobber a password
@@ -147,7 +164,7 @@ async function seedUsers(rolesByName) {
       password: spec.password,
       firstName: spec.firstName,
       lastName: spec.lastName,
-      roleId: rolesByName.get(spec.role)._id,
+      roleId: rolesBySlug.get(spec.role)._id,
       status: 'active', // the model defaults to 'invited', which cannot log in
     });
 
@@ -158,8 +175,8 @@ async function seedUsers(rolesByName) {
 try {
   await connectDb(process.env.MONGO_URI);
 
-  const rolesByName = await seedRoles();
-  await seedUsers(rolesByName);
+  const rolesBySlug = await seedRoles();
+  await seedUsers(rolesBySlug);
 
   console.log('Seed complete.');
 } catch (err) {

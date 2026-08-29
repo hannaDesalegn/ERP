@@ -48,7 +48,14 @@ userSchema.set('toJSON', {
   transform(doc, ret) {
     const role = doc.populated('roleId') ? doc.roleId : null;
 
-    ret.roleId = role ? role.id : String(ret.roleId);
+    // The slug, not the ObjectId — entities.md's User.roleId is the role's
+    // stable name and the frontend matches on it directly.
+    //
+    // The unpopulated fallback still yields an ObjectId, which nothing will
+    // match. Every path that serves a user populates the role (requireAuth and
+    // login both do), so this stays a fallback; it is a landmine for whoever
+    // adds a path that doesn't.
+    ret.roleId = role ? role.slug : String(ret.roleId);
     ret.roleName = role ? role.name : null;
     ret.permissions = role ? role.permissions : [];
 
