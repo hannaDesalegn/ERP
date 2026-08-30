@@ -3,6 +3,10 @@ import express from 'express';
 import cors from 'cors';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
 import authRoutes from './routes/auth.js';
+import dashboardRoutes from './routes/dashboard.js';
+import roleRoutes from './routes/roles.js';
+import settingsRoutes from './routes/settings.js';
+import userRoutes from './routes/users.js';
 
 const app = express();
 
@@ -22,6 +26,10 @@ app.get('/api/health', (req, res) => {
 app.use('/api/customers',customerRoutes);
 // Routes mount above this line.
 app.use('/api/auth', authRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/roles', roleRoutes);
+app.use('/api/settings', settingsRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler); // must stay last
