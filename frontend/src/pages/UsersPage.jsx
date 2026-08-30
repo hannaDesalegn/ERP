@@ -98,12 +98,24 @@ const userCreateSchema = z.object({
     .trim()
     .min(1, 'Enter a last name.')
     .max(100, 'Last name is too long.'),
+  // Length only, matching the server's rule — no composition requirements, per
+  // the NIST guidance the backend cites. The server also refuses a short list
+  // of common passwords; that list is not duplicated here, because a blocklist
+  // in two places is a blocklist that disagrees with itself. A rejection comes
+  // back as a 422 on `password` and lands on this input like any other.
+  password: z.string().min(8, 'Use at least 8 characters.'),
   roleId: z.string().min(1, 'Choose a role.'),
   status: z.enum(['active', 'invited', 'suspended']),
 });
 
-/** PATCH: same rules, every field optional. Never restate the rules. */
-const userUpdateSchema = userCreateSchema.partial();
+/**
+ * PATCH: same rules, every field optional. Never restate the rules.
+ *
+ * password is omitted rather than optional — the edit form has no password
+ * field and the endpoint refuses one. Changing a password is the account
+ * owner's own action, on the Settings page.
+ */
+const userUpdateSchema = userCreateSchema.omit({ password: true }).partial();
 
 /**
  * One field, one control, two option sets. Suspending an account that has never
@@ -168,11 +180,20 @@ function UserFormDrawer({ user, roleOptions, rolesLoading, onClose }) {
     resolver: zodResolver(isEdit ? userUpdateSchema : userCreateSchema),
     defaultValues: {
       email: user?.email ?? '',
+      // Create-only. Unused on edit, where the field is not rendered and the
+      // schema has no place for it.
+      password: '',
       firstName: user?.firstName ?? '',
       lastName: user?.lastName ?? '',
       roleId: user?.roleId ?? '',
-      // A new account is invited until the admin says otherwise.
-      status: user?.status ?? 'invited',
+      // Active by default, because this form now sets a password. Login refuses
+      // any account that is not active, so defaulting to Invited handed the
+      // admin a working password attached to an account that could not use it —
+      // with nothing on screen explaining why. Invited stays available in the
+      // select for the case it actually describes: an account made ahead of the
+      // person. The server keeps its own default of invited for callers that
+      // omit status entirely.
+      status: user?.status ?? 'active',
     },
   });
 
@@ -219,6 +240,22 @@ function UserFormDrawer({ user, roleOptions, rolesLoading, onClose }) {
           hint="This is the address they sign in with."
           {...register('email')}
         />
+
+        {/* Create only. On edit there is deliberately no password field: an
+            admin does not set someone else's password from here, and an empty
+            box next to a saved account invites exactly that. The owner changes
+            their own from Settings. */}
+        {!isEdit && (
+          <FormField
+            label="Password"
+            type="password"
+            required
+            autoComplete="new-password"
+            error={errors.password?.message}
+            hint="At least 8 characters. Length matters more than symbols — a short phrase works well."
+            {...register('password')}
+          />
+        )}
 
         <FormField
           label="First name"

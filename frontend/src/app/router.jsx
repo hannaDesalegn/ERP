@@ -51,14 +51,11 @@ export const router = createBrowserRouter([
         ),
       },
 
-      {
-        path: '/settings',
-        element: (
-          <RequireRole roles={['admin']}>
-            <SettingsPage />
-          </RequireRole>
-        ),
-      },
+      // Not RequireRole. Everyone signed in may reach Settings, because
+      // everyone has a password to change; the page itself shows only the
+      // sections the user's permissions allow, so a manager or staff member
+      // sees the password form and nothing else. Users above stays admin-only.
+      { path: '/settings', element: <SettingsPage /> },
 
       // Every module's routes, collected by the registry.
       ...moduleRoutes,

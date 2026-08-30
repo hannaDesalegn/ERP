@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import crypto from 'node:crypto';
 import mongoose from 'mongoose';
 import { z } from 'zod';
 
@@ -9,6 +8,7 @@ import { requireAuth } from '../middleware/auth.js';
 import { ApiError } from '../middleware/error.js';
 import { requirePermission } from '../middleware/permissions.js';
 import { paginate } from '../utils/paginate.js';
+import { passwordSchema } from '../utils/password.js';
 import { validateBody } from '../utils/validate.js';
 
 const router = Router();
@@ -35,6 +35,9 @@ const userCreateSchema = z.object({
     .trim()
     .min(1, 'Enter an email address.')
     .email('Must be a valid email address.'),
+  // Hashed by User's pre-save hook, so the plaintext never reaches the model
+  // layer as anything but an assignment. Create-only — see userUpdateSchema.
+  password: passwordSchema,
   firstName: z.string().trim().min(1, 'Enter a first name.').max(100, 'First name is too long.'),
   lastName: z.string().trim().min(1, 'Enter a last name.').max(100, 'Last name is too long.'),
   // Only "present" here. Whether it names a real role is a database question,
@@ -43,8 +46,17 @@ const userCreateSchema = z.object({
   status: z.enum(['active', 'invited', 'suspended'], 'Choose a status.'),
 });
 
-/** PATCH: same rules, every field optional. Never restate the rules. */
-const userUpdateSchema = userCreateSchema.partial();
+/**
+ * PATCH: same rules, every field optional. Never restate the rules.
+ *
+ * password is omitted rather than made optional. Leaving it in would let an
+ * admin set any user's password without knowing the current one, which is a
+ * privilege nobody asked for and a quiet route to taking over an account —
+ * changing a password goes through PATCH /api/auth/password, which proves the
+ * current one first. An admin-driven reset is a separate feature with its own
+ * flow (a one-time link, not a chosen value), and does not exist yet.
+ */
+const userUpdateSchema = userCreateSchema.omit({ password: true }).partial();
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -150,7 +162,7 @@ router.post(
   validateBody(userCreateSchema),
   async (req, res, next) => {
     try {
-      const { email, firstName, lastName, roleId, status } = req.body;
+      const { email, password, firstName, lastName, roleId, status } = req.body;
 
       // Role before email, so a body with both an unknown role and a taken
       // address answers the 422 rather than the 409 — a malformed field beats a
@@ -161,14 +173,11 @@ router.post(
 
       const user = await User.create({
         email,
-        // The model requires a password and this endpoint has no field for one —
-        // the form doesn't collect it and neither does the mock. A random value
-        // nothing knows leaves the account unable to log in rather than able to
-        // log in with something guessable, which is the safe half of the gap. The
-        // other half, an invite or reset flow that lets the account set a real
-        // password, does not exist yet; until it does, a created user is only
-        // reachable by seeding one. Flagged in the handover summary.
-        password: crypto.randomBytes(32).toString('hex'),
+        // Assigned in plaintext and hashed by the model's pre-save hook, which
+        // create() runs. An insertMany or updateOne here would store it as
+        // typed. It never comes back out: password is select:false and toJSON
+        // deletes it regardless.
+        password,
         firstName,
         lastName,
         avatarUrl: null,

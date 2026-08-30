@@ -21,9 +21,50 @@
 
 import { http, HttpResponse } from 'msw';
 
-import { delay } from './helpers';
+import { delay, validationError } from './helpers';
 
 const BASE = '/api/auth';
+
+/**
+ * The password strength rule, mirroring backend/src/utils/password.js: a
+ * minimum length and a blocklist, no composition requirements (NIST SP 800-63B
+ * §5.1.1.2 advises against them — they produce Password1! and rule out the long
+ * passphrases that are actually stronger).
+ *
+ * Exported because POST /api/users applies the same rule when an admin sets
+ * someone's initial password. Passwords are this file's business — it is the
+ * only place in the frontend that knows one — so the rule lives here rather
+ * than being written out a second time in the users handlers.
+ *
+ * The blocklist is a short excerpt of the backend's. Mock-land does not need
+ * the whole thing; it needs enough to demonstrate the rejection.
+ *
+ * @param {unknown} value
+ * @returns {string|null} the message, or null when the password is acceptable
+ */
+export function passwordIssue(value) {
+  const password = String(value ?? '');
+
+  if (password.length < 8) return 'Use at least 8 characters.';
+
+  const COMMON = [
+    'password',
+    'password1',
+    'password123',
+    'passw0rd',
+    '12345678',
+    '123456789',
+    'qwerty123',
+    'iloveyou',
+    'admin123',
+    'welcome1',
+    'changeme',
+  ];
+
+  return COMMON.includes(password.toLowerCase())
+    ? 'That password is too common. Choose something less guessable.'
+    : null;
+}
 
 /**
  * The full permission catalogue from docs/entities.md § Permission strings.
@@ -243,5 +284,68 @@ export const authHandlers = [
   http.post(`${BASE}/logout`, async () => {
     await delay(100);
     return new HttpResponse(null, { status: 204 });
+  }),
+
+  /**
+   * PATCH /api/auth/password — changes the signed-in user's own password.
+   *
+   * The target is always the token's own user; there is no id in the path or
+   * the body, so no version of this request touches another account.
+   *
+   * Unlike login and /me above, the failures here use the backend's
+   * `{ error: { code, message } }` envelope rather than this file's older flat
+   * `{ message }`. That is deliberate — new handlers match the real server, and
+   * apiClient reads both, so the two styles coexist until the older pair is
+   * brought across.
+   */
+  http.patch(`${BASE}/password`, async ({ request }) => {
+    await delay();
+
+    const user = userFromRequest(request);
+    if (!user) {
+      return HttpResponse.json(
+        {
+          error: {
+            code: 'UNAUTHENTICATED',
+            message: 'Authentication is required.',
+          },
+        },
+        { status: 401 },
+      );
+    }
+
+    const { currentPassword, newPassword } = await request.json();
+
+    // Shape first, so an empty box is a field error rather than a failed
+    // comparison reported as a wrong password.
+    const fields = {};
+    if (!String(currentPassword ?? '')) {
+      fields.currentPassword = 'Enter your current password.';
+    }
+    const issue = passwordIssue(newPassword);
+    if (issue) fields.newPassword = issue;
+    if (Object.keys(fields).length > 0) return validationError(fields);
+
+    // 401 rather than a field error, matching the backend. Plaintext compare,
+    // like everything else in this file, and for the same reason.
+    if (user.password !== currentPassword) {
+      return HttpResponse.json(
+        {
+          error: {
+            code: 'UNAUTHENTICATED',
+            message: 'Current password is incorrect.',
+          },
+        },
+        { status: 401 },
+      );
+    }
+
+    // Mutated in place, so the old password stops working and the new one
+    // starts, for as long as the page stays loaded — same lifetime as every
+    // other write in mock-land.
+    user.password = newPassword;
+    user.updatedAt = new Date().toISOString();
+
+    return HttpResponse.json({ data: publicUser(user) });
   }),
 ];

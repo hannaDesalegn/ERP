@@ -14,7 +14,11 @@
 
 import { http, HttpResponse } from 'msw';
 
-import { ROLE_PERMISSIONS, userIdFromRequest } from './authHandlers';
+import {
+  ROLE_PERMISSIONS,
+  passwordIssue,
+  userIdFromRequest,
+} from './authHandlers';
 import {
   conflict,
   delay,
@@ -181,9 +185,17 @@ function nextUserNumber() {
 
 const STATUSES = ['active', 'invited', 'suspended'];
 
-/** Server-managed fields a client must never set or change. */
+/**
+ * Server-managed fields a client must never set or change.
+ *
+ * `password` is on the list for PATCH: the real endpoint omits it from its
+ * update schema entirely, so a password arriving here is stripped rather than
+ * applied. It is also why the created record below has no password field —
+ * passwords live in authHandlers, which is the only file that knows one.
+ */
 const READ_ONLY_FIELDS = [
   'id',
+  'password',
   'roleName',
   'permissions',
   'lastLoginAt',
@@ -207,6 +219,13 @@ function validate(body, { partial = false } = {}) {
   }
   if ((!partial || has('lastName')) && !String(body.lastName ?? '').trim()) {
     fields.lastName = 'Enter a last name.';
+  }
+  // Create only. PATCH has no password field at all — an admin does not set
+  // someone else's password, and the real endpoint strips one if it arrives.
+  // Changing a password goes through PATCH /api/auth/password.
+  if (!partial) {
+    const issue = passwordIssue(body.password);
+    if (issue) fields.password = issue;
   }
   if ((!partial || has('roleId')) && !roleById(body.roleId)) {
     fields.roleId = 'Choose a role.';

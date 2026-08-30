@@ -6,6 +6,7 @@ import { z } from 'zod';
 import User, { BCRYPT_ROUNDS } from '../models/User.js';
 import { requireAuth } from '../middleware/auth.js';
 import { ApiError } from '../middleware/error.js';
+import { passwordSchema } from '../utils/password.js';
 import { validateBody } from '../utils/validate.js';
 
 const router = Router();
@@ -88,6 +89,54 @@ router.post('/login', validateBody(loginSchema), async (req, res, next) => {
 // left to do but envelope it.
 router.get('/me', requireAuth, (req, res) => {
   res.json({ data: req.user });
+});
+
+// Only "not empty". The current password is checked against the stored hash,
+// not against the strength rule — an account whose password predates that rule
+// must still be able to change it, and telling the caller their existing
+// password is too weak to type is no help. newPassword gets the real rule.
+const changePasswordSchema = z.object({
+  currentPassword: z
+    .string({ error: 'Enter your current password.' })
+    .min(1, 'Enter your current password.'),
+  newPassword: passwordSchema,
+});
+
+/**
+ * PATCH /api/auth/password — changes the signed-in user's own password.
+ *
+ * Own account only: the target is req.user, never an id from the path or body,
+ * so there is no version of this request that touches somebody else. Proving
+ * the current password is what separates "the user changed their password"
+ * from "whoever borrowed this laptop changed their password".
+ */
+router.patch('/password', requireAuth, validateBody(changePasswordSchema), async (req, res, next) => {
+  try {
+    // requireAuth loaded req.user without the hash — password is select:false —
+    // so it has to be fetched again explicitly for checkPassword to compare
+    // against anything.
+    const user = await User.findById(req.user._id).select('+password');
+
+    if (!user || !(await user.checkPassword(req.body.currentPassword))) {
+      throw ApiError.unauthenticated('Current password is incorrect.');
+    }
+
+    // Assigned in plaintext; the pre-save hook hashes it because this time the
+    // password field really has been modified.
+    user.password = req.body.newPassword;
+    await user.save();
+
+    // Existing access tokens stay valid until they expire — they carry no
+    // password state and nothing revokes them. A password change that does not
+    // sign out the thief who prompted it is half a control; the other half
+    // needs a token version or a denylist, neither of which exists yet
+    // (backend-plan.md §4 puts refresh rotation out of scope).
+    await user.populate('roleId');
+
+    res.json({ data: user });
+  } catch (err) {
+    next(err);
+  }
 });
 
 export default router;
