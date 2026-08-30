@@ -8,6 +8,11 @@ import roleRoutes from './routes/roles.js';
 import settingsRoutes from './routes/settings.js';
 import userRoutes from './routes/users.js';
 
+// C's routes — products, suppliers, purchase orders.
+import productRoutes from './routes/products.js';
+import purchaseOrderRoutes from './routes/purchaseOrders.js';
+import supplierRoutes from './routes/suppliers.js';
+
 const app = express();
 
 app.disable('x-powered-by');
@@ -24,6 +29,12 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use('/api/customers',customerRoutes);
+
+// C — Operations.
+app.use('/api/products', productRoutes);
+app.use('/api/suppliers', supplierRoutes);
+app.use('/api/purchase-orders', purchaseOrderRoutes);
+
 // Routes mount above this line.
 app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
