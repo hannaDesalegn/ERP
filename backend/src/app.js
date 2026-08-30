@@ -7,6 +7,8 @@ import dashboardRoutes from './routes/dashboard.js';
 import roleRoutes from './routes/roles.js';
 import settingsRoutes from './routes/settings.js';
 import userRoutes from './routes/users.js';
+import orderRoutes from './routes/orders.js';
+import invoiceRoutes from './routes/invoices.js';
 
 const app = express();
 
@@ -23,6 +25,8 @@ app.get('/api/health', (req, res) => {
   res.json({ data: { ok: true } });
 });
 
+app.use('/api/invoices', invoiceRoutes);
+app.use('/api/orders', orderRoutes);
 app.use('/api/customers',customerRoutes);
 // Routes mount above this line.
 app.use('/api/auth', authRoutes);
