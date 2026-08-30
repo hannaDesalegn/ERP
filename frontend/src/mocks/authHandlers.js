@@ -232,6 +232,47 @@ function userFromRequest(request) {
   return users.find((user) => user.id === id) ?? null;
 }
 
+/**
+ * ── Keeping this file's accounts in step with the users handlers ─────────────
+ *
+ * Mock-land has two arrays: the one below, which knows passwords and answers
+ * login, and the one in userHandlers, which answers the Users page. The real
+ * backend has a single users collection, so anything that changes an account
+ * there has to change it in both here.
+ *
+ * Without these, "create a user, then sign in as them" — the demo path —
+ * worked only against the real backend, because a user created through
+ * POST /api/users existed in the other array and had no password anywhere.
+ *
+ * The three below are called by userHandlers after each write. They are
+ * deliberately narrow: this file owns passwords, so the password is the one
+ * field it keeps for itself and never accepts from the caller.
+ */
+
+/** After POST /api/users — the new account can now sign in. */
+export function registerMockAccount(user, password) {
+  users.push({ ...user, password });
+}
+
+/**
+ * After PATCH /api/users/:id. Without this a renamed email would still sign in
+ * under the old address, and /me would answer with stale permissions.
+ */
+export function syncMockAccount(user) {
+  const index = users.findIndex((candidate) => candidate.id === user.id);
+  if (index === -1) return; // a seeded user this file never registered
+
+  // The password is this file's business and is not on the record the users
+  // handlers hold, so it is carried across rather than taken from the caller.
+  users[index] = { ...user, password: users[index].password };
+}
+
+/** After DELETE /api/users/:id — a deleted account must stop signing in. */
+export function forgetMockAccount(id) {
+  const index = users.findIndex((candidate) => candidate.id === id);
+  if (index !== -1) users.splice(index, 1);
+}
+
 export const authHandlers = [
   http.post(`${BASE}/login`, async ({ request }) => {
     await delay();
@@ -247,10 +288,15 @@ export const authHandlers = [
             .toLowerCase() && candidate.password === password,
     );
 
-    // One message for both "no such email" and "wrong password". Telling them
-    // apart hands an attacker a list of valid accounts —
-    // docs/security-notes.md §4.
-    if (!user) {
+    // One message for all three failures — no such email, wrong password, and
+    // an account that is not active. Telling them apart hands an attacker a
+    // list of valid accounts — docs/security-notes.md §4.
+    //
+    // The status check matches the real backend, which refuses anything that is
+    // not active. It matters now that accounts can be created here: without it
+    // an invited account would sign in against the mock and be refused by the
+    // server, which is the worst way to find out.
+    if (!user || user.status !== 'active') {
       return HttpResponse.json(
         { message: 'Invalid email or password' },
         { status: 401 },

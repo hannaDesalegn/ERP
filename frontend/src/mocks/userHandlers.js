@@ -16,7 +16,10 @@ import { http, HttpResponse } from 'msw';
 
 import {
   ROLE_PERMISSIONS,
+  forgetMockAccount,
   passwordIssue,
+  registerMockAccount,
+  syncMockAccount,
   userIdFromRequest,
 } from './authHandlers';
 import {
@@ -317,6 +320,12 @@ export const userHandlers = [
 
     users.push(created);
 
+    // The password is not stored on `created` — it goes to authHandlers, which
+    // owns passwords and answers login. Without this the new account would show
+    // in the list and then be unable to sign in, which is the one thing an
+    // admin will try immediately after creating it.
+    registerMockAccount(created, body.password);
+
     return HttpResponse.json(
       { data: created },
       { status: 201, headers: { Location: `${BASE}/${created.id}` } },
@@ -356,6 +365,10 @@ export const userHandlers = [
       updatedAt: new Date().toISOString(),
     };
 
+    // A changed email is a changed login identifier, and changed permissions
+    // are what /me answers with. Both live in the other array too.
+    syncMockAccount(users[index]);
+
     return HttpResponse.json({ data: users[index] });
   }),
 
@@ -381,6 +394,12 @@ export const userHandlers = [
     }
 
     users.splice(index, 1);
+
+    // A deleted account must stop being able to sign in. This also closes the
+    // same hole for the three seeded accounts, which have always been in both
+    // arrays and, until now, kept working after being deleted here.
+    forgetMockAccount(params.id);
+
     return new HttpResponse(null, { status: 204 });
   }),
 ];
