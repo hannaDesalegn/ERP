@@ -83,6 +83,63 @@ router.get('/', requirePermission('customers.view'), async (req, res, next) => {
   }
 });
 
+// GET /api/customers/:id/orders — this customer's orders. MUST come before
+// GET /:id below, or Express reads "orders" as if it were a customer id.
+router.get(
+  '/:id/orders',
+  requirePermission('customers.view'),
+  requirePermission('orders.view'),
+  async (req, res, next) => {
+    try {
+      const customer = await Customer.findById(req.params.id);
+      if (!customer) throw ApiError.notFound('Customer not found.');
+
+      // Lazy import avoids a hard circular dependency between the two route
+      // files — orders.js doesn't need to import customers.js either.
+      const { SalesOrder } = await import('../models/SalesOrder.js');
+
+      const result = await paginate(SalesOrder, req.query, {
+        searchFields: ['orderNumber'],
+        sortable: ['orderNumber', 'createdAt', 'grandTotal'],
+        defaultSort: '-createdAt',
+        // baseFilter scopes every result to this customer regardless of the
+        // client's own query params — see paginate.js's $and handling.
+        baseFilter: { customerId: customer._id },
+      });
+
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+// GET /api/customers/:id/invoices — same pattern, this customer's invoices.
+router.get(
+  '/:id/invoices',
+  requirePermission('customers.view'),
+  requirePermission('invoices.view'),
+  async (req, res, next) => {
+    try {
+      const customer = await Customer.findById(req.params.id);
+      if (!customer) throw ApiError.notFound('Customer not found.');
+
+      const { Invoice } = await import('../models/Invoice.js');
+
+      const result = await paginate(Invoice, req.query, {
+        searchFields: ['invoiceNumber'],
+        sortable: ['invoiceNumber', 'createdAt', 'dueDate', 'amountDue'],
+        defaultSort: '-createdAt',
+        baseFilter: { customerId: customer._id },
+      });
+
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
 // GET /api/customers/:id
 router.get('/:id', requirePermission('customers.view'), async (req, res, next) => {
   try {

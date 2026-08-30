@@ -63,7 +63,7 @@ async function nextOrderNumber() {
 async function buildLinesAndTotals(lineInputs) {
   let Product;
   try {
-    ({ Product } = await import('../models/Product.js'));
+    ({ default: Product } = await import('../models/Product.js'));
   } catch {
     throw ApiError.conflict(
       'Products are not available yet — cannot price order lines. Try again once the Products module ships.',
@@ -79,7 +79,7 @@ async function buildLinesAndTotals(lineInputs) {
     const product = await Product.findById(input.productId);
     if (!product) throw ApiError.notFound(`Product ${input.productId} not found.`);
 
-    const gross = product.unitPrice * input.quantity;
+   const gross = product.sellingPrice * input.quantity;
     const lineDiscount = Math.round((gross * input.discountPercent) / 100);
     const afterDiscount = gross - lineDiscount;
     const lineTax = Math.round((afterDiscount * input.taxPercent) / 100);
@@ -89,7 +89,7 @@ async function buildLinesAndTotals(lineInputs) {
       productId: product._id,
       productName: product.name, // denormalised now, frozen from here on
       sku: product.sku,
-      unitPrice: product.unitPrice,
+     unitPrice: product.sellingPrice,
       quantity: input.quantity,
       discountPercent: input.discountPercent,
       taxPercent: input.taxPercent,
