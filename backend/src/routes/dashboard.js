@@ -1,5 +1,6 @@
 import { Router } from 'express';
 
+import { Customer } from '../models/Customer.js';
 import User from '../models/User.js';
 import { requireAuth } from '../middleware/auth.js';
 import { requirePermission } from '../middleware/permissions.js';
@@ -17,30 +18,37 @@ const router = Router();
  *
  * REAL — computed per request, from a collection that exists:
  *
+ *   activeCustomers      Customer.countDocuments({ status: 'active' })
  *   activeUsers          User.countDocuments({ status: 'active' })
  *
  * STATIC — the collection behind it does not exist yet:
  *
  *   revenueThisMonth     Invoices / payments
  *   ordersThisMonth      Orders
- *   activeCustomers      Customers — see below
  *   averageOrderValue    derived from the two order figures
  *   outstandingBalance   Invoices
  *   overdueInvoices      Invoices
  *   recentActivity       order / invoice / payment / customer events
  *
- * activeCustomers is deliberately NOT wired to the user count. Customer is a
- * separate entity from User (entities.md) and DashboardPage renders this card
- * under the title "Active customers" — feeding it a count of staff accounts
- * would put a real number beneath a label that means something else, which is
- * worse than an obviously unbuilt one. The genuine count is exposed under its
- * own activeUsers key instead. The page reads six KPIs by name rather than
- * iterating, so the extra key renders nothing until someone adds a card for it.
+ * Both real counts filter on status: 'active', which Customer and User each
+ * declare as an enum with 'active' as one member — Customer's is
+ * active/inactive/blocked and defaults to active, User's is
+ * active/invited/suspended. There is no customer seed script to match against,
+ * so the filter follows the model rather than a fixture.
  *
- * Every `trend` is static, and stays that way even once the models land — a
- * month-over-month comparison needs history to compare against, which a
- * current-state count cannot produce on its own. activeUsers therefore carries
- * no trend at all rather than a made-up one.
+ * activeCustomers counts Customers and not Users, which is the whole point of
+ * it having waited for the Customer model: DashboardPage renders this card
+ * under the title "Active customers", and a count of staff accounts beneath
+ * that label would have been a real number meaning the wrong thing. The user
+ * count has its own activeUsers key. The page reads six KPIs by name rather
+ * than iterating, so that extra key renders nothing until someone adds a card.
+ *
+ * Neither real count carries a `trend`. A month-over-month comparison needs
+ * history to compare against, which a current-state count cannot produce on its
+ * own — so activeCustomers has dropped the static trend it inherited from the
+ * mock rather than pairing a real value with an invented 4.8%. KPICard treats
+ * trend as optional and omits the row. The five static KPIs keep theirs, being
+ * placeholder figures through and through.
  *
  * The static values match frontend/src/mocks/dashboardHandlers.js exactly, so
  * swapping the mock for this endpoint changes nothing on the page. Money is an
@@ -65,10 +73,9 @@ const summary = {
       value: 128, // a count, not money — no currency
       trend: { value: 3.2, direction: 'up', label: 'vs last month' },
     },
-    activeCustomers: {
-      value: 21,
-      trend: { value: 4.8, direction: 'up', label: 'vs last month' },
-    },
+    // activeCustomers is absent here on purpose — it is computed per request
+    // below. Leaving a static 21 in place that every response overwrote would
+    // read as a fallback that could still surface, which it cannot.
     averageOrderValue: {
       value: 3798828, // revenueThisMonth / ordersThisMonth, floored
       currency: 'ETB',
@@ -191,16 +198,24 @@ router.get(
   requirePermission('dashboard.view'),
   async (req, res, next) => {
     try {
-      // countDocuments rather than find().length — the count happens in Mongo
-      // and no documents cross the wire to be thrown away.
-      const activeUsers = await User.countDocuments({ status: 'active' });
+      // countDocuments rather than find().length — the counting happens in
+      // Mongo and no documents cross the wire to be thrown away. Issued
+      // together because neither depends on the other.
+      const [activeCustomers, activeUsers] = await Promise.all([
+        Customer.countDocuments({ status: 'active' }),
+        User.countDocuments({ status: 'active' }),
+      ]);
 
       // Spread so the static block above stays a constant: handing out the same
       // object every request would let one caller's mutation leak into the next.
       res.json({
         data: {
           ...summary,
-          kpis: { ...summary.kpis, activeUsers: { value: activeUsers } },
+          kpis: {
+            ...summary.kpis,
+            activeCustomers: { value: activeCustomers },
+            activeUsers: { value: activeUsers },
+          },
         },
       });
     } catch (err) {
