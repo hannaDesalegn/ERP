@@ -46,13 +46,43 @@ const DELAY = {
   submit: 310,
 };
 
+/**
+ * Reduce a post-login redirect target to a path inside this application, or
+ * fall back to the root.
+ *
+ * ProtectedRoute sets `from` from the URL the visitor was trying to reach, so
+ * its value is attacker-influenced: a link to `/\example.com` is captured and
+ * then handed to navigate() once the visitor signs in. React Router 6.30.4
+ * carries an open-redirect advisory (GHSA-wrjc-x8rr-h8h6) covering exactly that
+ * backslash form, and the only patched release is React Router 7, which is a
+ * major upgrade the team has not taken.
+ *
+ * `safeUrl()` in lib/format.js does not cover this case — it rejects `//` but
+ * returns anything else beginning with `/` unchanged, and `/\` begins with `/`.
+ *
+ * @param {unknown} target
+ * @returns {string} a same-origin path, always beginning with a single "/"
+ */
+function internalPathOnly(target) {
+  if (typeof target !== 'string' || target === '') return '/';
+
+  // Backslashes are treated as forward slashes by some browsers and routers, so
+  // "/\evil.test" can resolve as protocol-relative. Normalise before checking.
+  const normalised = target.replace(/\\/g, '/');
+
+  // Must be a rooted path, and must not be "//host" in disguise.
+  if (!normalised.startsWith('/') || normalised.startsWith('//')) return '/';
+
+  return normalised;
+}
+
 export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   // Where ProtectedRoute bounced the user from, or the app root.
-  const from = location.state?.from ?? '/';
+  const from = internalPathOnly(location.state?.from);
 
   const {
     register,
