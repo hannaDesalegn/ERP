@@ -15,9 +15,22 @@ import productRoutes from './routes/products.js';
 import purchaseOrderRoutes from './routes/purchaseOrders.js';
 import supplierRoutes from './routes/suppliers.js';
 
+// Added by C ahead of the external security review. See each file for why, and
+// for the limits of what they do.
+import { loginRateLimit } from './middleware/rateLimit.js';
+import { securityHeaders } from './middleware/securityHeaders.js';
+
 const app = express();
 
 app.disable('x-powered-by');
+
+// Render terminates TLS in front of us, so without this every request appears
+// to come from the proxy: req.ip would be one address for the whole internet
+// and req.secure would always be false. One hop, not `true`, which would let a
+// client spoof its own address through X-Forwarded-For.
+app.set('trust proxy', 1);
+
+app.use(securityHeaders);
 
 // Exact origin, never "*" — see security-notes.md §4. Credentials stay on even
 // though the token is a Bearer header today (backend-plan.md §4 puts refresh
@@ -29,6 +42,11 @@ app.use(express.json());
 app.get('/api/health', (req, res) => {
   res.json({ data: { ok: true } });
 });
+
+// Throttles sign-in attempts by address and by account. Mounted on the path
+// rather than inside routes/auth.js so that file is untouched; it must sit
+// after express.json(), because it reads the email from the parsed body.
+app.use('/api/auth/login', loginRateLimit);
 
 app.use('/api/invoices', invoiceRoutes);
 app.use('/api/orders', orderRoutes);
