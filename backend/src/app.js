@@ -17,8 +17,10 @@ import supplierRoutes from './routes/suppliers.js';
 
 // Added by C ahead of the external security review. See each file for why, and
 // for the limits of what they do.
+import { auditLog } from './middleware/auditLog.js';
 import { loginRateLimit } from './middleware/rateLimit.js';
 import { securityHeaders } from './middleware/securityHeaders.js';
+import auditRoutes from './routes/audit.js';
 
 const app = express();
 
@@ -47,6 +49,14 @@ app.get('/api/health', (req, res) => {
 // rather than inside routes/auth.js so that file is untouched; it must sit
 // after express.json(), because it reads the email from the parsed body.
 app.use('/api/auth/login', loginRateLimit);
+
+// Records every state-changing request once its response is sent. Mounted in
+// front of the routers rather than called inside each handler, so a route added
+// later is covered without anyone remembering to add a line. See the file for
+// what this approach cannot capture.
+app.use(auditLog);
+
+app.use('/api/audit-logs', auditRoutes);
 
 app.use('/api/invoices', invoiceRoutes);
 app.use('/api/orders', orderRoutes);

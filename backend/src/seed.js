@@ -51,6 +51,9 @@ const ALL_PERMISSIONS = [
   'users.delete',
   'settings.view',
   'settings.edit',
+  // Added by C alongside the audit log. Administrator only: the point of an
+  // audit trail is that the people it records cannot read or reshape it.
+  'audit.view',
 ];
 
 const ROLES = [
