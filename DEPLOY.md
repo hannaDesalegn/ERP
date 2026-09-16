@@ -94,11 +94,29 @@ From a machine with the rotated `MONGO_URI` in `backend/.env`:
 cd backend
 npm run seed              # roles, the three accounts, baseline records
 npm run seed:operations   # 6 categories, 32 products, 18 suppliers, 16 orders
+npm run seed:commercial   # 30 customers, 48 sales orders, 40 invoices
 ```
 
-`seed:operations` clears the five operations collections first, so it is safe to
-run more than once. It reads its fixtures from the frontend module folders so
-that the demo data and the mock data cannot drift apart.
+Run them in that order. `seed:operations` needs the accounts to attribute
+records to, and `seed:commercial` needs the products to price order lines from;
+each one says so and stops rather than guessing if you skip a step.
+
+Both clear their own collections before inserting, so they are safe to run more
+than once — but note that "safe" means the result is the same, not that nothing
+is lost. Re-running `seed:commercial` during a test window destroys any customer,
+order or invoice the testers created. Tell them before you run it.
+
+`seed:operations` reads its fixtures from the frontend module folders so that the
+demo data and the mock data cannot drift apart. `seed:commercial` takes its
+customers the same way, but builds orders and invoices against the product
+documents actually in the database, and calculates every total with the same
+arithmetic as the route that would have produced the record — so a total that
+does not add up is a bug in the server, not in the seed.
+
+**The seeds need a direct connection to MongoDB on port 27017.** Networks that
+block it — a good many corporate and public ones do — will fail with Atlas's
+"IP isn't whitelisted" message whatever the allowlist actually says. Render's
+shell reaches it fine, and so does any network that permits 27017 outbound.
 
 ---
 
