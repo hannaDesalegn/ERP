@@ -103,7 +103,11 @@ async function buildLinesAndTotals(lineInputs) {
  * calculates it — this is where that calculation actually happens.
  */
 function toResponse(invoiceDoc) {
-  const invoice = invoiceDoc.toObject();
+  // toJSON, not toObject: this function is the only way an invoice reaches the
+  // client, so taking the plain object here would skip the schema's toJSON
+  // transform and send `_id` and `__v` instead of the `id` the contract
+  // specifies. Every other resource gets the transform for free via res.json.
+  const invoice = invoiceDoc.toJSON();
   const isUnpaid = invoice.status === 'sent' || invoice.status === 'partially_paid';
   const isPastDue = new Date(invoice.dueDate) < new Date();
 

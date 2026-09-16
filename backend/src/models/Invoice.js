@@ -79,4 +79,28 @@ invoiceSchema.pre('save', function computeAmountDue(next) {
   next();
 });
 
+// See the note on Customer's transform. The line mapping follows
+// PurchaseOrder's — a subdocument does not pick up the parent's `virtuals`
+// setting, so each line needs its `id` written out here or the invoice detail
+// page renders its rows with an undefined key.
+invoiceSchema.set('toJSON', {
+  virtuals: true,
+  versionKey: false,
+  transform(doc, ret) {
+    // entities.md: ids are strings on the wire.
+    ret.customerId = String(ret.customerId);
+    ret.salesOrderId = ret.salesOrderId ? String(ret.salesOrderId) : null;
+
+    ret.lines = (ret.lines ?? []).map((line) => ({
+      ...line,
+      id: String(line._id),
+      productId: String(line.productId),
+      _id: undefined,
+    }));
+
+    delete ret._id;
+    return ret;
+  },
+});
+
 export const Invoice = mongoose.model('Invoice', invoiceSchema);

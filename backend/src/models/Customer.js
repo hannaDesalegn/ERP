@@ -56,4 +56,18 @@ const customerSchema = new mongoose.Schema(
   },
 );
 
+// The same transform Product, Supplier and the rest carry. It was missing here
+// until the collection had records in it to look at: entities.md says ids go
+// over the wire as a string `id`, and without this the response carries `_id`
+// and `__v` instead, so the browser navigates to /customers/undefined.
+customerSchema.set('toJSON', {
+  virtuals: true,
+  versionKey: false,
+  transform(doc, ret) {
+    // entities.md: ids are strings on the wire.
+    delete ret._id;
+    return ret;
+  },
+});
+
 export const Customer = mongoose.model('Customer', customerSchema);

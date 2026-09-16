@@ -68,4 +68,29 @@ const salesOrderSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+// See the note on Customer's transform. The line mapping follows
+// PurchaseOrder's — a subdocument does not pick up the parent's `virtuals`
+// setting, so each line needs its `id` written out here or the order detail
+// page renders its rows with an undefined key.
+salesOrderSchema.set('toJSON', {
+  virtuals: true,
+  versionKey: false,
+  transform(doc, ret) {
+    // entities.md: ids are strings on the wire.
+    ret.customerId = String(ret.customerId);
+    ret.createdBy = String(ret.createdBy);
+    ret.approvedBy = ret.approvedBy ? String(ret.approvedBy) : null;
+
+    ret.lines = (ret.lines ?? []).map((line) => ({
+      ...line,
+      id: String(line._id),
+      productId: String(line.productId),
+      _id: undefined,
+    }));
+
+    delete ret._id;
+    return ret;
+  },
+});
+
 export const SalesOrder = mongoose.model('SalesOrder', salesOrderSchema);
