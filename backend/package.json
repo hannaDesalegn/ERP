@@ -10,7 +10,8 @@
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
     "seed": "node src/seed.js",
-    "seed:operations": "node src/seedOperations.js"
+    "seed:operations": "node src/seedOperations.js",
+    "seed:commercial": "node src/seedCommercial.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
