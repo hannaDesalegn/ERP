@@ -1,5 +1,5 @@
 /**
- * Invoices MSW handlers — B owns this file.
+ * Invoices MSW handlers.
  *
  * ── COPYING THIS MODULE ──────────────────────────────────────────────────────
  * CHANGE: the path, the mock array, the validation rules, the searchFields.

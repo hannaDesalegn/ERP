@@ -1,5 +1,5 @@
 /**
- * Products MSW handlers — C owns this file.
+ * Products MSW handlers.
  *
  * ROUTE ORDER MATTERS: MSW matches top to bottom, so any literal path that
  * could be mistaken for an :id — /products/categories, /products/demo-* —

@@ -1,8 +1,8 @@
 /**
- * Module registry — owned by A.
+ * Module registry.
  *
  * The only file more than one person's work touches, and it is touched exactly
- * once per module, at the start: A adds one import line and three spreads, then
+ * once per module, at the start: one import line and three spreads, then
  * never again. Everything else about a module lives in the module's own folder.
  *
  * See README § Registry pattern.
@@ -48,7 +48,7 @@ export const moduleRoutes = [
  * @type {{ label: string, icon: unknown, path: string, permission: string }[]}
  */
 export const moduleNav = [
-  // Dashboard is A's own page, not a module, but this list is what both the
+  // Dashboard is a top-level page, not a module, but this list is what both the
   // sidebar and the breadcrumb labels read. Keeping it anywhere else means a
   // second nav array plus a STATIC_LABELS entry for the same one link.
   {

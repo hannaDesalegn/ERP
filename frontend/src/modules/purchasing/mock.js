@@ -1,5 +1,5 @@
 /**
- * Purchase orders mock data — C owns this file.
+ * Purchase orders mock data.
  *
  * Money is integer MINOR UNITS, dates are date-only "YYYY-MM-DD" or ISO
  * timestamps, missing values are null, and every record is obviously invented.
@@ -96,7 +96,7 @@ export function lookupProduct(productId) {
 /**
  * Line maths. The server owns these numbers — the UI may preview them but
  * never sends them (docs/entities.md § SalesOrder, docs/security-notes.md §2).
- * Written here so the backend team has an unambiguous reference:
+ * Written here as an unambiguous reference:
  *
  *   gross     = unitPrice × quantity
  *   discount  = round(gross × discountPercent / 100)

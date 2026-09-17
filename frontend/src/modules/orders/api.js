@@ -1,11 +1,11 @@
 /**
- * Orders API — B owns this file.
+ * Orders API.
  *
  * ── COPYING THIS MODULE ──────────────────────────────────────────────────────
  * CHANGE: the RESOURCE constant, the key namespace, and any module-specific
  *         endpoints at the bottom.
  * KEEP:   the shape. Every module is the same five verbs against the same
- *         envelope, which is exactly why B's and C's work never overlaps.
+ *         envelope, which is what keeps modules from overlapping.
  * Never call fetch here. apiClient handles the envelope, the auth header and
  * the 401 refresh; a module that calls fetch directly loses all three.
  * ─────────────────────────────────────────────────────────────────────────────

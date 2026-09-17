@@ -1,9 +1,9 @@
 /**
- * Handler collection — owned by A.
+ * Handler collection.
  *
- * Collects each module's handlers from the registry. B and C write handlers in
- * their own folder and export them from `modules/<name>/index.js`; they never
- * edit this file.
+ * Collects each module's handlers from the registry. Handlers live in their own
+ * module folder and are exported from `modules/<name>/index.js`, so adding a
+ * module does not require editing this file.
  */
 
 import { moduleHandlers } from '@/app/registry';

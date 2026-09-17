@@ -1,5 +1,5 @@
 /**
- * Drawer — owned by A. A dialog anchored to an edge instead of centred.
+ * Drawer. A dialog anchored to an edge instead of centred.
  *
  * Focus trap, Escape, scroll lock and focus return come from useDialogFocus,
  * the same hook Modal uses.

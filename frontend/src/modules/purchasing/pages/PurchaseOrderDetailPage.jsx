@@ -1,5 +1,5 @@
 /**
- * Purchase order detail — C owns this file.
+ * Purchase order detail.
  *
  * This page owns the status flow:
  *   draft → submit → pending_approval → approve → approved

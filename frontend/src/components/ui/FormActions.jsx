@@ -1,5 +1,5 @@
 /**
- * Form actions — owned by A. The button row at the foot of a form.
+ * Form actions. The button row at the foot of a form.
  *
  * @param {object} props
  * @param {string} [props.submitLabel]

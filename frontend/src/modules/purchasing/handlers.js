@@ -1,5 +1,5 @@
 /**
- * Purchase orders MSW handlers — C owns this file.
+ * Purchase orders MSW handlers.
  *
  * ROUTE ORDER MATTERS: MSW matches top to bottom. The literal demo paths are
  * declared before /:id, and the action routes (/:id/submit etc.) are more

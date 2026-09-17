@@ -1,5 +1,5 @@
 /**
- * Date input — owned by A.
+ * Date input.
  *
  * FormField already renders type="date"; this is the named entry point the
  * locked signature promises, not a second date input. min and max flow through

@@ -1,5 +1,5 @@
 /**
- * Empty state — owned by A.
+ * Empty state.
  *
  * An empty screen is an invitation to act, never an apology.
  * docs/components.md § Empty state copy.

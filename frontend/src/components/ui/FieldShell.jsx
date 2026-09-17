@@ -1,5 +1,5 @@
 /**
- * Field chrome — owned by A. Kit-internal, not exported from index.js.
+ * Field chrome. Kit-internal, not exported from index.js.
  *
  * The label / hint / error block every form control repeats. One copy, so the
  * aria wiring cannot drift between them.

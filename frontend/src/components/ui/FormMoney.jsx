@@ -1,5 +1,5 @@
 /**
- * Money input — owned by A.
+ * Money input.
  *
  * Integer minor units in, integer minor units out, never a float.
  * docs/entities.md § Money is an integer.

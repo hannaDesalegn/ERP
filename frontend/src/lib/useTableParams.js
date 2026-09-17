@@ -1,5 +1,5 @@
 /**
- * Table state, synced to the URL — owned by A.
+ * Table state, synced to the URL.
  *
  * Do not manage table state by hand. `/customers?page=2&status=active` must be
  * shareable, bookmarkable and survive a refresh, which means the state lives in

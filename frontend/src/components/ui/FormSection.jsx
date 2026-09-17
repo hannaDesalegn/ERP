@@ -1,5 +1,5 @@
 /**
- * Form section — owned by A. Layout and a heading; no field behaviour.
+ * Form section. Layout and a heading; no field behaviour.
  *
  * Not built on FieldShell: the shell binds a <label> to a control's id and
  * wires hint and error into its aria-describedby. A section has a heading, not
@@ -8,7 +8,7 @@
  * Renders <h2>, which sits correctly under a page's PageHeader <h1>. Inside a
  * Drawer or Modal, whose own title is an <h2>, it lands as a sibling rather
  * than a child. The locked signature has nowhere to put a level; if that
- * flatness starts to matter the fix is a `level` prop agreed by all three and
+ * flatness starts to matter the fix is a `level` prop
  * written into docs/components.md, not a second section component.
  *
  * @param {object} props

@@ -1,5 +1,5 @@
 /**
- * 404 — owned by A.
+ * 404.
  *
  * Copy says what happened and what to do, in the interface's voice.
  * Not "Oops!", not a sad face. docs/components.md § Error copy.

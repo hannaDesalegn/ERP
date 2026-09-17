@@ -1,8 +1,8 @@
 /**
- * Sidebar — owned by A.
+ * Sidebar.
  *
  * Nav entries come from the module registry, never a hardcoded list. Each
- * module exports its own `<noun>Nav` and A's registry collects them, so adding
+ * module exports its own `<noun>Nav` and the registry collects them, so adding
  * a module to the sidebar is zero work here.
  *
  * Two behaviours in one component, split by breakpoint:

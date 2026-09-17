@@ -1,7 +1,7 @@
 /**
- * Users + roles handlers and seed data — owned by A.
+ * Users + roles handlers and seed data.
  *
- * Five endpoints from docs/api-contract.md §4 (A — Foundation): the four user
+ * Five endpoints from docs/api-contract.md §4 (Foundation): the four user
  * verbs, plus GET /api/roles, which exists here because the user form's role
  * select has to be populated from somewhere real. Roles moves to its own file
  * when POST/PATCH /roles land; one read does not justify a second file today.
@@ -381,7 +381,7 @@ export const userHandlers = [
    * allowed to delete users, this particular target conflicts with the session
    * making the request.
    *
-   * TODO(A): the related rule — refusing to delete or demote the last remaining
+   * TODO: the related rule — refusing to delete or demote the last remaining
    * admin — is a different check and is not implemented here.
    */
   http.delete(`${BASE}/:id`, async ({ params, request }) => {

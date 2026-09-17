@@ -1,5 +1,5 @@
 /**
- * Invoices mock data — B owns this file.
+ * Invoices mock data.
  *
  * ── COPYING THIS MODULE ──────────────────────────────────────────────────────
  * CHANGE: the seed array, the code prefix, and the fields in `makeInvoice` to

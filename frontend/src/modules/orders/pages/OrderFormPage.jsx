@@ -1,14 +1,15 @@
 /**
- * SalesOrder create/edit form — B owns this file.
+ * SalesOrder create/edit form.
  *
  * ── COPYING THIS MODULE ──────────────────────────────────────────────────────
  * CHANGE: the fields, the schema import, the API calls, PRODUCT_OPTIONS.
  * KEEP:   the create-vs-edit branching via useParams(), the RHF + Zod wiring,
  *         useFieldArray for lines, and the mutation → toast → navigate flow.
  *
- * PRODUCT_OPTIONS is a TEMPORARY hardcoded list standing in for the Products
- * module (C's), which isn't built yet. Swap this for a real fetchProducts()
- * call once it ships — do not leave this hardcoded past that point.
+ * KNOWN ISSUE: PRODUCT_OPTIONS is a hardcoded placeholder list written before
+ * the Products API existed. Its ids (prd_0001…) do not exist in a real
+ * database, so saving an order against the real API fails. It must be replaced
+ * with a real product fetch.
  *
  * Totals shown here are a CLIENT-SIDE PREVIEW ONLY (docs/entities.md). The
  * server recomputes subtotal/discountTotal/taxTotal/grandTotal on save; this
@@ -45,7 +46,7 @@ import {
   salesOrderUpdateSchema,
 } from '../schema';
 
-// TEMPORARY — see file header. Replace with a real product fetch.
+// KNOWN ISSUE — see file header. Must be replaced with a real product fetch.
 const PRODUCT_OPTIONS = [
   { value: 'prd_0001', label: 'Steel Roofing Sheet 2mm', unitPrice: 85000 },
   { value: 'prd_0002', label: 'Cement 50kg Bag', unitPrice: 62000 },

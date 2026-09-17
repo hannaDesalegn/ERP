@@ -1,7 +1,7 @@
 /**
- * Dashboard handlers + summary data — owned by A.
+ * Dashboard handlers + summary data.
  *
- * One endpoint: GET /api/dashboard/summary (docs/api-contract.md §4, A —
+ * One endpoint: GET /api/dashboard/summary (docs/api-contract.md §4,
  * Foundation). It answers a single resource, so the envelope is `{ data }` with
  * no `meta` — recentActivity is a field inside that object rather than a bare
  * array at the top level.

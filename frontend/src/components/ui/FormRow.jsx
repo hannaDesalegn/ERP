@@ -1,5 +1,5 @@
 /**
- * Form row — owned by A. Puts fields side by side on wide screens.
+ * Form row. Puts fields side by side on wide screens.
  *
  * One column below 768px, always. Two half-width inputs on a phone are two
  * cramped inputs, and every field in this kit is full-width by default.

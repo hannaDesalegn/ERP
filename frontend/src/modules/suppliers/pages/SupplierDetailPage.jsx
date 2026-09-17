@@ -1,5 +1,5 @@
 /**
- * Supplier detail — C owns this file.
+ * Supplier detail.
  *
  * The purchase-order table below is read-only. Creating and editing orders is
  * the purchasing module's job; this page only reports what exists.

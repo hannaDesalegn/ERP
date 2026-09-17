@@ -1,5 +1,5 @@
 /**
- * Product detail — C owns this file.
+ * Product detail.
  *
  * The "Adjust stock" action is here rather than an editable quantity field on
  * the form, because stock only ever changes through an adjustment record

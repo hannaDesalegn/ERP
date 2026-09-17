@@ -1,5 +1,5 @@
 /**
- * Formatting helpers — owned by A.
+ * Formatting helpers.
  *
  * Money is an integer in minor units everywhere in this app
  * (docs/entities.md § Money is an integer). These functions are the ONLY place

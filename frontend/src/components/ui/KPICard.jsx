@@ -1,5 +1,5 @@
 /**
- * KPI card — owned by A. A single number with optional context.
+ * KPI card. A single number with optional context.
  */
 
 import { ArrowDown, ArrowUp } from 'lucide-react';

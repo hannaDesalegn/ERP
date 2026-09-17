@@ -1,5 +1,5 @@
 /**
- * Receive goods — C owns this file.
+ * Receive goods.
  *
  * `quantityReceived` is what drives the receive flow and the
  * `partially_received` status. It is the one field that makes a PO line differ

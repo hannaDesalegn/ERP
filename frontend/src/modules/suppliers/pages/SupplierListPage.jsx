@@ -1,5 +1,5 @@
 /**
- * Supplier list — C owns this file.
+ * Supplier list.
  *
  * Same four-step shape as every list page in the app:
  *   1. useTableParams()  2. useQuery()  3. columns  4. <DataTable />

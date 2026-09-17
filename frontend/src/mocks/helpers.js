@@ -1,5 +1,5 @@
 /**
- * Shared mock helpers — owned by A, used by every module's handlers.
+ * Shared mock helpers. Used by every module's handlers.
  *
  * These exist so all three modules paginate, delay and fail identically. If a
  * module hand-rolls its own pagination, the UI starts behaving differently per

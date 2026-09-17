@@ -1,8 +1,8 @@
 /**
- * Design tokens — owned by A.
+ * Design tokens.
  *
  * This is exactly the token list in docs/components.md § Design tokens. The
- * names are locked; the values are A's to tune. Modules never hardcode a hex
+ * names are locked; the values can be tuned here. Modules never hardcode a hex
  * value — they use the Tailwind class that maps to the token
  * (see tailwind.config.js).
  *

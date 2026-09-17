@@ -1,5 +1,5 @@
 /**
- * Scroll restoration for a custom scroll container — owned by A.
+ * Scroll restoration for a custom scroll container.
  *
  * React Router's own <ScrollRestoration> only handles the *window* scroll. In
  * this shell the window never scrolls; the content pane does. So we track it

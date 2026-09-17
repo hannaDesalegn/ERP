@@ -1,5 +1,5 @@
 /**
- * App shell — owned by A.
+ * App shell.
  *
  * The layout every signed-in page renders inside. The whole point is that the
  * sidebar and topbar never move: in a dense app, chrome that shifts while you

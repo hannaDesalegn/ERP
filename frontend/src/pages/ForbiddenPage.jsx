@@ -1,5 +1,5 @@
 /**
- * 403 — owned by A.
+ * 403.
  *
  * Where a record's very existence is sensitive the API answers 404 instead, so
  * this page is for the case where the user may know the thing exists but not

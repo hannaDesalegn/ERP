@@ -1,5 +1,5 @@
 /**
- * Orders MSW handlers — B owns this file.
+ * Orders MSW handlers.
  *
  * ── COPYING THIS MODULE ──────────────────────────────────────────────────────
  * CHANGE: the path, the mock array, the validation rules, the searchFields.

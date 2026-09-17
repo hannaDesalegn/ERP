@@ -1,8 +1,8 @@
 /**
  * Conditional className joiner.
  *
- * Deliberately not `clsx` — README §4 requires all three owners to agree before
- * a new dependency lands in `lib/`, and this is four lines.
+ * Deliberately not `clsx` — a new dependency in `lib/` requires review, and
+ * this is four lines.
  *
  * @param {...unknown} parts
  * @returns {string}

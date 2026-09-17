@@ -1,5 +1,5 @@
 /**
- * Role guard — owned by A. Hides UI; the server still enforces access.
+ * Role guard. Hides UI; the server still enforces access.
  */
 
 import { Navigate, Outlet, useLocation } from 'react-router-dom';

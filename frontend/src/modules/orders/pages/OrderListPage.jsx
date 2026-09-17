@@ -1,5 +1,5 @@
 /**
- * Order list — B owns this file.
+ * Order list.
  *
  * ── COPYING THIS MODULE ──────────────────────────────────────────────────────
  * CHANGE: the columns, the nouns, the filter keys, the empty-state copy.

@@ -1,5 +1,5 @@
 /**
- * fetch wrapper — owned by A. Nobody else calls fetch directly.
+ * fetch wrapper. Nobody else calls fetch directly.
  *
  * Every response in this app is enveloped (`{ data, meta }` or `{ error }`),
  * so this is the one place that unwraps it. Module `api.js` files get plain
@@ -27,7 +27,7 @@ export class ApiError extends Error {
 }
 
 /**
- * TODO(A), week 2: the access token lives in AuthProvider's React state, never
+ * TODO: the access token lives in AuthProvider's React state, never
  * in localStorage. This module reads it through a setter rather than importing
  * React state directly. On 401, call /auth/refresh once, retry, and share a
  * single refresh promise across concurrent 401s.

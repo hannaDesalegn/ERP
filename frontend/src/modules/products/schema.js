@@ -1,8 +1,8 @@
 /**
- * Product validation — C owns this file.
+ * Product validation.
  *
- * These schemas get handed to the backend team as the executable version of the
- * validation rules, so they are written as if the server will run them.
+ * These schemas are the executable version of the validation rules, mirrored by
+ * the API, so they are written as if the server will run them.
  *
  * Zod validating here is UX. The server re-validates everything and is the
  * actual control. See docs/security-notes.md §2.
@@ -90,7 +90,7 @@ export const productUpdateSchema = productCreateSchema.innerType().partial();
  *
  * Note: the POST body in docs/api-contract.md §4 lists
  * { direction, quantity, reason, notes } but the StockAdjustment entity also
- * carries `reference`. Including it as optional; raised with the group.
+ * carries `reference`, so it is included here as optional.
  */
 export const stockAdjustmentSchema = z.object({
   direction: z.enum(['increase', 'decrease'], {

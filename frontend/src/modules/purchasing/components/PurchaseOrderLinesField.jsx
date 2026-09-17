@@ -1,5 +1,5 @@
 /**
- * Purchase order line editor — C owns this file.
+ * Purchase order line editor.
  *
  * The hardest form in the operations set: a variable-length array of lines, each
  * with a product picker, quantity, unit price and two percentages.

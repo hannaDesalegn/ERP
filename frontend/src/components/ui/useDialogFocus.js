@@ -1,5 +1,5 @@
 /**
- * Dialog behaviour — owned by A. Kit-internal, not exported from index.js.
+ * Dialog behaviour. Kit-internal, not exported from index.js.
  *
  * Focus trap, Escape to close, scroll lock and focus return, shared by Modal
  * and Drawer so the two cannot drift apart.

@@ -1,8 +1,8 @@
 /**
- * Supplier validation — C owns this file.
+ * Supplier validation.
  *
- * These schemas get handed to the backend team as the executable version of the
- * validation rules, so they are written as if the server will run them.
+ * These schemas are the executable version of the validation rules, mirrored by
+ * the API, so they are written as if the server will run them.
  *
  * Zod validating here is UX. The server re-validates everything and is the
  * actual control. See docs/security-notes.md §2.

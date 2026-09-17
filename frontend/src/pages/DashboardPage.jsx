@@ -1,5 +1,5 @@
 /**
- * Dashboard — owned by A. The landing page for every signed-in user.
+ * Dashboard. The landing page for every signed-in user.
  *
  * Six KPI cards and a recent-activity table, from one request. Kit components
  * only: PageHeader, KPICard, DataTable.

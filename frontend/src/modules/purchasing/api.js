@@ -1,5 +1,5 @@
 /**
- * Purchase orders API — C owns this file.
+ * Purchase orders API.
  *
  * Never call fetch here. apiClient handles the envelope, the auth header and
  * the 401 refresh; a module that calls fetch directly loses all three.

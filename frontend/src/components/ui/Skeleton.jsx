@@ -1,5 +1,5 @@
 /**
- * Skeleton — owned by A.
+ * Skeleton.
  *
  * motion-safe, not the global reduced-motion rule: that shortens the animation
  * to 0.01ms, and a pulse should be absent rather than frozen.

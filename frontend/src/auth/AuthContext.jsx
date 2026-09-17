@@ -1,5 +1,5 @@
 /**
- * Auth state — owned by A.
+ * Auth state.
  *
  * The access token lives in React state here and nowhere else: not
  * localStorage, not sessionStorage, not a readable cookie. All three are

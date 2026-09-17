@@ -1,5 +1,5 @@
 /**
- * Customer create/edit form — B owns this file.
+ * Customer create/edit form.
  *
  * ── COPYING THIS MODULE ──────────────────────────────────────────────────────
  * CHANGE: the fields, the schema import, the API calls.

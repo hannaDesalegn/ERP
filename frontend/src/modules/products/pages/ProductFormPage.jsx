@@ -1,5 +1,5 @@
 /**
- * Product create / edit — C owns this file.
+ * Product create / edit.
  *
  * One component for both, because the only differences are which schema runs,
  * which mutation fires and what the button says. Two files would drift.
@@ -330,8 +330,8 @@ export function ProductFormPage() {
 }
 
 /**
- * Local stand-in for the kit's specified `FormSection`, which is not built yet
- * (components/ui/index.js § Still to come). Swap when A ships it.
+ * Local stand-in for the kit's `FormSection`, written before that component
+ * existed. The kit version can now replace it.
  */
 function Section({ title, children }) {
   return (

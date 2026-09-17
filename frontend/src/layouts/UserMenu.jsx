@@ -1,5 +1,5 @@
 /**
- * User menu — owned by A.
+ * User menu.
  *
  * Reads the signed-in user from AuthProvider and owns the only Log out control
  * in the app.

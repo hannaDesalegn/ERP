@@ -1,5 +1,5 @@
 /**
- * Customer detail (view-only) — B owns this file.
+ * Customer detail (view-only).
  *
  * ── COPYING THIS MODULE ──────────────────────────────────────────────────────
  * CHANGE: the fields shown, the section grouping.

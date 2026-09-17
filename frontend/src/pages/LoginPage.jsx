@@ -1,5 +1,5 @@
 /**
- * Login — owned by A.
+ * Login.
  *
  * Renders outside AppShell (see app/router.jsx): no sidebar, no topbar, no
  * breadcrumbs. AuthLayout owns the poster half; this file owns the form half
@@ -164,7 +164,7 @@ export function LoginPage() {
           className="auth-rise flex justify-end"
           style={{ animationDelay: `${DELAY.forgot}ms` }}
         >
-          {/* TODO(A): route exists from week 2; until then this lands on 404. */}
+          {/* TODO: /forgot-password is not implemented; this link 404s. */}
           <Link
             to="/forgot-password"
             className="rounded-sm text-sm text-primary hover:underline"

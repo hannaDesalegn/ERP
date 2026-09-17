@@ -1,5 +1,5 @@
 /**
- * Settings — owned by A.
+ * Settings.
  *
  * Reachable by anyone signed in, unlike Users: every account has a password to
  * change, and that form lives here. The company, invoicing and inventory

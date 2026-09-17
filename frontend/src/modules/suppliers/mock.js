@@ -1,5 +1,5 @@
 /**
- * Suppliers mock data — C owns this file.
+ * Suppliers mock data.
  *
  * Money is integer MINOR UNITS, dates are ISO strings, missing values are null,
  * and every record is obviously invented — docs/security-notes.md § Fake data.

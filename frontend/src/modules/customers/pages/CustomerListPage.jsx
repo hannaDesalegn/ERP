@@ -1,5 +1,5 @@
 /**
- * Customer list — B owns this file.
+ * Customer list.
  *
  * ── COPYING THIS MODULE ──────────────────────────────────────────────────────
  * CHANGE: the columns, the nouns, the filter keys, the empty-state copy.

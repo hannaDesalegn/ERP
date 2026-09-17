@@ -1,12 +1,12 @@
 /**
- * Login smoke test — owned by A.
+ * Login smoke test.
  *
  * Not a test of Zod or React Hook Form; both are tested by their authors. This
  * covers the wiring between them and the kit: that an empty submit surfaces
  * both field errors, that the button reports its loading state, and that a
  * valid submit ends up at `/`.
  *
- * TODO(A), week 2: when the fake delay becomes POST /auth/login, this test
+ * TODO: when the fake delay becomes POST /auth/login, this test
  * grows an MSW handler and a case for 401 — the failure path is the one that
  * actually matters, and it does not exist yet to test.
  */

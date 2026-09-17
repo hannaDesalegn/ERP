@@ -1,7 +1,7 @@
 /**
- * Purchasing module registry export — C owns this file entirely.
+ * Purchasing module registry export.
  *
- * The ONLY file A's registry imports. Three named exports, always the same
+ * The ONLY file the registry imports. Three named exports, always the same
  * three: <noun>Routes, <noun>Nav, <noun>Handlers.
  */
 

@@ -1,5 +1,5 @@
 /**
- * Orders mock data — B owns this file.
+ * Orders mock data.
  *
  * ── COPYING THIS MODULE ──────────────────────────────────────────────────────
  * CHANGE: the seed array, the code prefix, and the fields in `makeOrder` to
@@ -128,7 +128,7 @@ function makeOrder(seed, index) {
     currency: 'ETB',
     status: STATUSES[statusIndex],
     notes: null,
-    createdBy: 'usr_0001', // fake userId — Users/roles are A's module
+    createdBy: 'usr_0001', // fake userId — users and roles are a separate module
     approvedBy: statusIndex >= 2 ? 'usr_0001' : null, // set once approved+
     createdAt: `${isoDate(daysAgo)}T09:30:00Z`,
     updatedAt: `${isoDate(Math.max(daysAgo - 1, 0))}T14:05:00Z`,

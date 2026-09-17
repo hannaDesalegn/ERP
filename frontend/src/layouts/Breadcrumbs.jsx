@@ -1,5 +1,5 @@
 /**
- * Topbar breadcrumbs — owned by A.
+ * Topbar breadcrumbs.
  *
  * Derived from the URL rather than passed in by each page, so a page cannot
  * forget to set them and no two pages disagree about what the trail looks like.
@@ -12,7 +12,7 @@ import { Link, useLocation } from 'react-router-dom';
 
 import { moduleNav } from '@/app/registry';
 
-/** A's own pages are not modules, so their labels live here. */
+/** Top-level pages are not modules, so their labels live here. */
 const STATIC_LABELS = {
   '/settings': 'Settings',
   '/users': 'Users',

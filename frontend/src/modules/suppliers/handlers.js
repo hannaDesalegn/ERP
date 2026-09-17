@@ -1,5 +1,5 @@
 /**
- * Suppliers MSW handlers — C owns this file.
+ * Suppliers MSW handlers.
  *
  * ROUTE ORDER MATTERS: MSW matches top to bottom, so any literal path that
  * could be mistaken for an :id — like /suppliers/demo-server-error — must be

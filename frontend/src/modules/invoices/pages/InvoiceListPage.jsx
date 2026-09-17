@@ -1,5 +1,5 @@
 /**
- * Invoice list — B owns this file.
+ * Invoice list.
  *
  * ── COPYING THIS MODULE ──────────────────────────────────────────────────────
  * CHANGE: the columns, the nouns, the filter keys, the empty-state copy.

@@ -1,5 +1,5 @@
 /**
- * Product list — C owns this file.
+ * Product list.
  *
  * Follows the four-step shape every list page in this app uses:
  *   1. useTableParams()  — table state, synced to the URL

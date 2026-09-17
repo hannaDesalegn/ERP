@@ -1,5 +1,5 @@
 /**
- * Topbar — owned by A.
+ * Topbar.
  *
  * Never scrolls. Breadcrumbs left, search in the middle, user menu right.
  */

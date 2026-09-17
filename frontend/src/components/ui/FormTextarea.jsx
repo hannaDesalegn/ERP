@@ -1,5 +1,5 @@
 /**
- * Multi-line text — owned by A.
+ * Multi-line text.
  *
  * FormField already renders a textarea; this is the named entry point the
  * locked signature promises, not a second implementation. rows, maxLength and

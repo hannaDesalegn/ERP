@@ -1,5 +1,5 @@
 /**
- * Checkbox — owned by A.
+ * Checkbox.
  *
  * Works with register (RHF reads event.target.checked) or with Controller.
  */

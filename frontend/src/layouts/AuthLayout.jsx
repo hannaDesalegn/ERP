@@ -1,5 +1,5 @@
 /**
- * Auth layout — owned by A.
+ * Auth layout.
  *
  * The one screen in this app allowed to be loud. Everything inside AppShell is
  * deliberately quiet — dense tables, 40px rows, no decoration — so the whole

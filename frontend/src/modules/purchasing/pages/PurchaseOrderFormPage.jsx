@@ -1,5 +1,5 @@
 /**
- * Purchase order create / edit — C owns this file.
+ * Purchase order create / edit.
  *
  * Editing is only reachable while the order is a draft. The server enforces
  * that with a 409 (handlers.js § EDITABLE_STATUSES); this page just avoids

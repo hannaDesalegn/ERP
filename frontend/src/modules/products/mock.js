@@ -1,5 +1,5 @@
 /**
- * Products mock data — C owns this file.
+ * Products mock data.
  *
  * Copied from modules/customers/mock.js and swapped to the Product entity.
  * Money is integer MINOR UNITS, dates are ISO strings, missing values are null,
@@ -15,7 +15,7 @@
  * Categories. docs/entities.md defines `categoryId` + denormalised
  * `categoryName` on Product but never defines the Category shape itself, even
  * though GET /api/products/categories exists in the API contract. Using the
- * minimum the UI needs; raised with the group.
+ * minimum the UI needs.
  */
 export const categories = [
   { id: 'cat_01', name: 'Raw materials' },

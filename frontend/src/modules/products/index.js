@@ -1,8 +1,8 @@
 /**
- * Products module registry export — C owns this file entirely.
+ * Products module registry export.
  *
- * The ONLY file A's registry imports. Three named exports, always the same
- * three: <noun>Routes, <noun>Nav, <noun>Handlers. A adds one import line to
+ * The ONLY file the registry imports. Three named exports, always the same
+ * three: <noun>Routes, <noun>Nav, <noun>Handlers. One import line is added to
  * src/app/registry.js when the module first lands, and then never touches it.
  */
 
@@ -22,7 +22,7 @@ export const productNav = {
 };
 
 /**
- * Route objects, spread into the tree by A's router.
+ * Route objects, spread into the tree by the router.
  *
  * `Component:` rather than `element: <Page />` on purpose — it keeps this file
  * free of JSX so it can stay `index.js` as the README structure specifies.

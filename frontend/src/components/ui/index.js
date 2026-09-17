@@ -1,5 +1,5 @@
 /**
- * The shared kit — A's folder. B and C import from here, never edit it.
+ * The shared component kit. Modules import from here and do not edit it.
  * Prop signatures are locked by docs/components.md; implementation is not.
  *
  * Shipped: Button, FormField, FormSelect, StatusBadge, PageHeader, DataTable,

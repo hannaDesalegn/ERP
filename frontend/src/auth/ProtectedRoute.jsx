@@ -1,5 +1,5 @@
 /**
- * Route guard — owned by A. Hides UI; the server still enforces access.
+ * Route guard. Hides UI; the server still enforces access.
  */
 
 import { Loader2 } from 'lucide-react';

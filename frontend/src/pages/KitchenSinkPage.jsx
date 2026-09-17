@@ -1,8 +1,8 @@
 /**
- * TEMPORARY — delete before the demo.
+ * Component kit reference page. Development aid, not part of the product
+ * surface — it is still routed at /kitchen-sink.
  *
- * Reference page for kit v0. B and C read this to see how the kit behaves, so
- * every example here is genuinely interactive: real useState, real callbacks.
+ * Every example here is genuinely interactive: real useState, real callbacks.
  * The handful of examples that exist to show a fixed state are labelled
  * "Fixed state" so nobody mistakes them for something broken.
  *

@@ -1,14 +1,15 @@
 /**
- * Invoice create/edit form — B owns this file.
+ * Invoice create/edit form.
  *
  * ── COPYING THIS MODULE ──────────────────────────────────────────────────────
  * CHANGE: the fields, the schema import, the API calls, PRODUCT_OPTIONS.
  * KEEP:   the create-vs-edit branching via useParams(), the RHF + Zod wiring,
  *         useFieldArray for lines, and the mutation → toast → navigate flow.
  *
- * PRODUCT_OPTIONS is a TEMPORARY hardcoded list standing in for the Products
- * module (C's), which isn't built yet. Swap for a real fetchProducts() call
- * once it ships.
+ * KNOWN ISSUE: PRODUCT_OPTIONS is a hardcoded placeholder list written before
+ * the Products API existed. Its ids (prd_0001…) do not exist in a real
+ * database, so saving an invoice against the real API fails. It must be
+ * replaced with a real product fetch.
  *
  * amountDue is NEVER a form field — it is always grandTotal - amountPaid,
  * computed server-side (docs/entities.md). This form shows it read-only.
@@ -47,7 +48,7 @@ import {
   invoiceUpdateSchema,
 } from '../schema';
 
-// TEMPORARY — see file header. Replace with a real product fetch.
+// KNOWN ISSUE — see file header. Must be replaced with a real product fetch.
 const PRODUCT_OPTIONS = [
   { value: 'prd_0001', label: 'Steel Roofing Sheet 2mm', unitPrice: 85000 },
   { value: 'prd_0002', label: 'Cement 50kg Bag', unitPrice: 62000 },

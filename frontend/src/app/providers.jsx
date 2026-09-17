@@ -1,5 +1,5 @@
 /**
- * App providers — owned by A.
+ * App providers.
  *
  * One place so no module ever wires a provider of its own. There is exactly one
  * AuthProvider in the app and it is here; a second one anywhere shadows this

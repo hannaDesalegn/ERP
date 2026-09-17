@@ -1,5 +1,5 @@
 /**
- * Invoice detail (view-only) — B owns this file.
+ * Invoice detail (view-only).
  *
  * ── COPYING THIS MODULE ──────────────────────────────────────────────────────
  * CHANGE: the fields shown, the section grouping.

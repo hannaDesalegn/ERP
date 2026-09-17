@@ -1,14 +1,14 @@
 /**
- * Customer validation — B owns this file.
+ * Customer validation.
  *
  * ── COPYING THIS MODULE ──────────────────────────────────────────────────────
  * CHANGE: every field, to match your entity in docs/entities.md.
  * KEEP:   the create/update split, money as integers, `.nullable()` rather than
  *         optional-empty-string, and messages written the way they should read
  *         to a user.
- * These schemas get handed to the backend team as the executable version of the
- * validation rules — they mirror them server-side rather than inventing a
- * second set that drifts. So write them as if the server will run them.
+ * These schemas are the executable version of the validation rules. The API
+ * mirrors them server-side rather than keeping a second set that drifts, so
+ * they are written as if the server will run them.
  * ─────────────────────────────────────────────────────────────────────────────
  *
  * Zod validating here is UX. The server re-validates everything and is the

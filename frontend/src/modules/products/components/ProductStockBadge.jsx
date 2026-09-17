@@ -1,5 +1,5 @@
 /**
- * Derived stock badge — C owns this file.
+ * Derived stock badge.
  *
  * `low_stock` and `out_of_stock` are NOT values of Product.status, which is
  * only 'active' | 'discontinued' (docs/entities.md). They are display states

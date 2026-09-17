@@ -1,7 +1,7 @@
 /**
- * Settings handlers — owned by A.
+ * Settings handlers.
  *
- * GET and PATCH /api/settings (docs/api-contract.md §4, A — Foundation).
+ * GET and PATCH /api/settings (docs/api-contract.md §4, Foundation).
  * A singleton, not a collection: one resource, so the envelope is `{ data }`
  * with no `meta` and there is no id in the path or the body.
  *

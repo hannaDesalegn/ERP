@@ -1,5 +1,5 @@
 /**
- * Users — owned by A. Account administration.
+ * Users. Account administration.
  *
  * The first real use of <RequireRole roles={['admin']}>, which wraps the whole
  * route in app/router.jsx. On top of that the row actions carry users.edit and

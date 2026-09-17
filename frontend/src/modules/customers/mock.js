@@ -1,5 +1,5 @@
 /**
- * Customers mock data — B owns this file.
+ * Customers mock data.
  *
  * ── COPYING THIS MODULE ──────────────────────────────────────────────────────
  * CHANGE: the seed array, the code prefix, and the fields in `makeCustomer` to

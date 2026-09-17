@@ -1,5 +1,5 @@
 /**
- * Route tree — owned by A.
+ * Route tree.
  *
  * Every signed-in page renders inside AppShell, including 403 and 404 — losing
  * the nav when you hit a bad URL leaves the user stranded. /login is the one
@@ -37,7 +37,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="/dashboard" replace /> },
 
-      // A's own page, so it sits here rather than coming from the registry.
+      // A top-level page, so it sits here rather than coming from the registry.
       { path: '/dashboard', element: <DashboardPage /> },
 
       // Admin only. RequireRole renders ForbiddenPage in place rather than
@@ -62,7 +62,7 @@ export const router = createBrowserRouter([
 
       { path: '/403', element: <ForbiddenPage /> },
 
-      // TEMPORARY — delete along with the page before the demo.
+      // Component kit reference page — a development aid, not a product page.
       { path: '/kitchen-sink', element: <KitchenSinkPage /> },
 
       // Catch-all. Must stay last.

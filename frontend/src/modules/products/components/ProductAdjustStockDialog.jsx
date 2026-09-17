@@ -1,5 +1,5 @@
 /**
- * Adjust stock — C owns this file.
+ * Adjust stock.
  *
  * Stock is never edited by typing a new quantityOnHand. It changes only through
  * an adjustment record, so there is always an audit trail (docs/entities.md
