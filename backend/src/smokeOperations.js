@@ -1,5 +1,5 @@
 /**
- * Operations smoke test — C owns this file.
+ * Operations smoke test.
  *
  * Exercises every operations endpoint against a running server and a real
  * database, and asserts the authorisation boundaries rather than only the happy
@@ -21,11 +21,33 @@ const BASE_URL = (process.env.BASE_URL ?? 'http://localhost:8000').replace(
   '',
 );
 
+/**
+ * Test-account credentials come from the environment. They were literals here
+ * until the passwords were rotated; keeping them in the source put working
+ * credentials for a deployed environment into the repository and its history.
+ *
+ * Set before running:
+ *   TEST_ADMIN_PASSWORD, TEST_MANAGER_PASSWORD, TEST_STAFF_PASSWORD
+ */
 const ACCOUNTS = {
-  admin: { email: 'admin@zion.test', password: 'admin123' },
-  manager: { email: 'manager@zion.test', password: 'manager123' },
-  staff: { email: 'staff@zion.test', password: 'staff123' },
+  admin: { email: 'admin@zion.test', password: process.env.TEST_ADMIN_PASSWORD },
+  manager: { email: 'manager@zion.test', password: process.env.TEST_MANAGER_PASSWORD },
+  staff: { email: 'staff@zion.test', password: process.env.TEST_STAFF_PASSWORD },
 };
+
+// Fail here rather than reporting a run of authentication failures that look
+// like findings. Names only — never the values.
+const missingCredentials = Object.entries(ACCOUNTS)
+  .filter(([, account]) => !account.password)
+  .map(([role]) => `TEST_${role.toUpperCase()}_PASSWORD`);
+
+if (missingCredentials.length > 0) {
+  console.error(
+    `Missing test-account credentials: ${missingCredentials.join(', ')}.\n` +
+      'These are supplied separately and are not stored in the repository.',
+  );
+  process.exit(1);
+}
 
 let passed = 0;
 let failed = 0;

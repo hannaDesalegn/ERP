@@ -1,5 +1,5 @@
 /**
- * Auth handlers + seed users — owned by A.
+ * Auth handlers + seed users.
  *
  * This is the mock stand-in for the auth service. It is the only place in the
  * frontend that knows a password, and it is deliberately dumb: plaintext
@@ -140,12 +140,16 @@ export const ROLE_PERMISSIONS = {
  * from the User shape in docs/entities.md; no new field was added for the role.
  *
  * `password` is stripped before any response leaves this file.
+ *
+ * The passwords are mock-only placeholders. They work only in the browser while
+ * VITE_USE_MOCKS=true and have no relationship to the credentials of any real
+ * environment, whose accounts are provisioned separately.
  */
 const users = [
   {
     id: 'usr_0001',
     email: 'admin@zion.test',
-    password: 'admin123',
+    password: 'mock-only-admin',
     firstName: 'Meron',
     lastName: 'Alemu',
     avatarUrl: null,
@@ -160,7 +164,7 @@ const users = [
   {
     id: 'usr_0002',
     email: 'manager@zion.test',
-    password: 'manager123',
+    password: 'mock-only-manager',
     firstName: 'Dawit',
     lastName: 'Bekele',
     avatarUrl: null,
@@ -175,7 +179,7 @@ const users = [
   {
     id: 'usr_0003',
     email: 'staff@zion.test',
-    password: 'staff123',
+    password: 'mock-only-staff',
     firstName: 'Sara',
     lastName: 'Girma',
     avatarUrl: null,
