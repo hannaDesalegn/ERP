@@ -1,12 +1,12 @@
 # Security notes
 
-Maintained by A, reviewed by all three. Two jobs:
+Two jobs:
 
 1. Stop us from building false confidence — a frontend check is not a security
    control, and a team that forgets this ships something that looks safe and
    isn't.
-2. Be the handover document for the backend team. Every row in section 2 is a
-   check they must implement independently.
+2. Record what the backend must enforce itself. Every row in section 2 is a
+   check the API has to make independently of the UI.
 
 **Threat model for this project:** an internal ERP holding payroll, supplier
 pricing, and customer records. Real ERP data is genuinely sensitive. But this
@@ -47,7 +47,7 @@ Left column = what our UI appears to enforce. Right column = what the backend
 | SKU uniqueness hinted after blur | Enforce uniqueness with a DB constraint — 409 |
 | File input restricted by accept + size | Validate MIME by content, cap size, strip metadata, serve from a separate origin |
 
-**Rule of thumb for B and C:** for every `permission=` you write and every Zod
+**Rule of thumb:** for every `permission=` you write and every Zod
 rule you add, there must be a corresponding line in this table. If you add one,
 add the row.
 
@@ -64,13 +64,13 @@ backend control is bypassed. React escapes output by default, so this reduces to
 a short list:
 
 - **No `dangerouslySetInnerHTML`.** Enforced by `react/no-danger` as an ESLint
-  **error**, so it fails CI. The rule is never disabled, including "just this
+  **error**, so linting fails. The rule is never disabled, including "just this
   once for the invoice notes field."
 - No `innerHTML`, no building DOM from strings, no `eval`, no `new Function`.
 - Never put user input into an `href` without checking the scheme —
-  `javascript:` URLs are a real vector. A provides `safeUrl()` in `lib/`.
+  `javascript:` URLs are a real vector. `safeUrl()` in `lib/format.js` does this.
 - If rich text is ever needed, it goes through DOMPurify with an allow-list, and
-  that decision comes to the group first.
+  that decision is reviewed before it is made.
 
 ### Nothing secret in the bundle
 
@@ -83,9 +83,10 @@ readable text. No API keys, no credentials, no internal URLs that matter.
 The most likely way a project like this actually gets compromised is a malicious
 npm package.
 
-- Lockfile committed. `npm ci` in CI, never `npm install`.
-- `npm audit --audit-level=high` runs in CI.
-- New dependency in `components/ui`, `lib`, or `app` requires all three to agree.
+- Lockfile committed. Use `npm ci` for reproducible installs, not `npm install`.
+- Run `npm audit --audit-level=high` before a release. This repository has no CI
+  pipeline, so nothing runs it automatically.
+- New dependency in `components/ui`, `lib`, or `app` requires review.
 - Check weekly downloads and last-publish date before adding anything. A package
   with 200 downloads a week is a liability.
 - shadcn/ui was chosen partly for this: components are copied into our repo
@@ -99,11 +100,19 @@ Decided, not negotiable (see `docs/api-contract.md` §3):
 - Access token in memory, in React state. **Never localStorage** — that is
   readable by any injected script, which turns an XSS into a permanent account
   takeover.
-- Refresh token in an httpOnly, Secure, SameSite=Strict cookie. JS never sees it.
-- Logout clears in-memory state *and* calls `/auth/logout` so the server
-  invalidates the refresh token. Clearing client state alone is not a logout.
-- Auto-logout after 30 minutes idle, with a warning at 28. ERP sessions get left
-  open on shared office machines — this is a realistic risk, not theatre.
+- Authentication is a bearer token. `POST /api/auth/login` returns an access
+  token (valid for 24 hours), which the client sends in the `Authorization:
+  Bearer` header. The API sets no authentication cookie and implements no
+  refresh token.
+- Logout clears in-memory state. There is no server-side logout or token
+  revocation, so a token remains valid until it expires; this is a known
+  limitation.
+- **No idle timeout is implemented.** An auto-logout after 30 minutes idle, with
+  a warning at 28, was specified but not built. A session currently ends only
+  when the user logs out, when the page is reloaded or closed (the token is held
+  only in memory), or when the 24-hour token expires — so an open, unattended
+  tab stays signed in. ERP sessions get left open on shared office machines, so
+  an idle timeout remains a recommended control rather than an existing one.
 
 ### Not leaking data in the UI
 
@@ -123,10 +132,11 @@ non-event; real data in a public repo is an incident that follows you.
 
 ---
 
-## 4. Backend handover checklist
+## 4. Backend security checklist
 
-Hand this section, `entities.md`, and each module's `schema.js` to whoever builds
-the API.
+The controls the API must enforce independently of the frontend. This is a list
+of requirements, not a record of what is implemented — `docs/api-contract.md`
+describes the API's current behaviour.
 
 **Authentication**
 - [ ] Don't roll your own. Use a maintained library or provider. Hand-rolled
@@ -156,8 +166,12 @@ the API.
 
 **Transport and headers**
 - [ ] HTTPS only, HSTS on.
-- [ ] CSRF protection on all state-changing requests (we use a cookie, so this
-      is required): SameSite=Strict plus an Origin check, or double-submit token.
+- [ ] CSRF: the API authenticates with a bearer token in the `Authorization`
+      header and sets no authentication cookie, so a browser does not attach
+      credentials to cross-site requests automatically. If cookie-based
+      authentication is ever introduced, CSRF protection on all state-changing
+      requests becomes required: SameSite=Strict plus an Origin check, or a
+      double-submit token.
 - [ ] CORS allow-list of exact origins. Never `*` with credentials.
 - [ ] Content-Security-Policy — this is the backstop that limits damage if XSS
       ever gets through.
@@ -176,7 +190,7 @@ the API.
 
 ---
 
-## 5. Our own checklist before the demo
+## 5. Frontend release checklist
 
 - [ ] `npm audit` clean at high and above
 - [ ] No `dangerouslySetInnerHTML` anywhere — grep it
@@ -189,15 +203,14 @@ the API.
 - [ ] Logout clears state and redirects
 - [ ] Direct-URL access to a module the user lacks permission for lands on 403,
       not a blank page
-- [ ] Idle timeout works
+- [ ] Idle timeout works — not implemented yet; see § Token handling
 - [ ] No user data in console output
 
 ---
 
 ## 6. What we are explicitly not doing
 
-Named so nobody burns a week on it: penetration testing, WAF, 2FA/MFA, SSO/SAML,
-field-level encryption, intrusion detection, compliance certification. All
-legitimate for a production ERP. None of them belong in a three-week intern
-frontend with mock data. If the intern leader asks for one, it becomes a scoped
-task with an owner — not something we bolt on quietly.
+Out of scope for this project: WAF, 2FA/MFA, SSO/SAML, field-level encryption,
+intrusion detection, compliance certification. All legitimate for a production
+ERP. Any of them would be a separately scoped piece of work, not something added
+quietly.

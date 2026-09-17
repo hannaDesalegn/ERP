@@ -2,15 +2,15 @@
 
 **These signatures are frozen. Implementation is not.**
 
-That distinction is what unblocks the team: I ship an ugly-but-working v0 in the
-first 2–3 days, B and C build against it immediately, and when I restyle
-everything in week 2 their pages improve for free with zero merge conflicts.
+That distinction is what lets pages be built against the kit before its styling
+is final: when a component's implementation improves, every page that uses it
+improves too, with no changes of its own.
 
 Rules:
 
-- `src/components/ui/` is A's folder. B and C **import from it, never edit it.**
-- Need a prop that doesn't exist? Ask in the group chat. A adds it in a
-  15-minute turnaround. Do not fork the component into your module folder.
+- `src/components/ui/` is the shared kit. Modules **import from it, never edit it.**
+- Need a prop that doesn't exist? Add it to the kit and to this document. Do not
+  fork the component into your module folder.
 - Need something module-specific? Build it in your own folder, prefixed:
   `CustomerTable` wrapping `DataTable`, not a second `DataTable`.
 
@@ -253,7 +253,7 @@ Button says "Publish" → toast says "Published". Not "Success!".
 ```
 
 `variant="auto"` maps known ERP statuses to colours centrally, so `approved` is
-the same green in every module without three people picking three greens:
+the same green in every module without each module picking its own:
 
 | Variant   | Statuses                                                                |
 | --------- | ----------------------------------------------------------------------- |

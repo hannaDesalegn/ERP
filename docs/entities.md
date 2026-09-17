@@ -1,13 +1,13 @@
 # Entity shapes
 
-**Status: DRAFT — needs sign-off from all three before anyone builds a form.**
+The reference for entity shapes. The backend models and frontend schemas mirror
+it field for field. A shape changes here first, then in code — never in code
+alone.
 
-Once signed off, this file is read-only. Changes require all three to agree, and
-the change is announced in the group chat, not merged quietly.
-
-This is the highest-risk coordination point in the project. If B invents
-`customer.fullName` and C invents `supplier.contact_name`, reconciling them later
-means touching every form, table, and mock file in both modules.
+These shapes are the highest-risk point of agreement in the project. If one
+module invents `customer.fullName` and another invents `supplier.contact_name`,
+reconciling them later means touching every form, table, and mock file in both
+modules.
 
 ---
 
@@ -17,7 +17,7 @@ These apply to **every** entity. No exceptions without a group decision.
 
 | Rule | Value | Note |
 |---|---|---|
-| Field case | `camelCase` | In JSON on the wire and in JS. Backend team must match. |
+| Field case | `camelCase` | In JSON on the wire, in JS, and in the backend models. |
 | IDs | `string` | Not numbers. Survives a switch to UUIDs later. |
 | Dates | ISO 8601 UTC string | `"2026-08-08T09:30:00Z"`. Format at render time only. |
 | Date-only | `"YYYY-MM-DD"` | For due dates, order dates — no timezone confusion. |
@@ -84,7 +84,7 @@ optional.
 
 ---
 
-## Users, roles, permissions — A owns
+## Users, roles, permissions
 
 ```js
 /**
@@ -133,7 +133,7 @@ Add to this list when you need one. Keep the format.
 
 ---
 
-## Customer — B owns
+## Customer
 
 ```js
 /**
@@ -159,7 +159,7 @@ Add to this list when you need one. Keep the format.
  */
 ```
 
-## SalesOrder — B owns
+## SalesOrder
 
 ```js
 /**
@@ -189,7 +189,7 @@ Add to this list when you need one. Keep the format.
 `cancelled` reachable from any state before `fulfilled`. Totals are always
 server-calculated; the UI may show an optimistic preview but never sends totals.
 
-## Invoice — B owns
+## Invoice
 
 ```js
 /**
@@ -220,7 +220,7 @@ it; it does not compute it.
 
 ---
 
-## Product — C owns
+## Product
 
 ```js
 /**
@@ -263,10 +263,10 @@ it; it does not compute it.
 
 Stock is never edited by typing a new `quantityOnHand`. It changes only through
 an adjustment record, so there is always an audit trail. This is a real ERP
-requirement and it shapes C's UI: the detail page gets an "Adjust stock" action,
+requirement and it shapes the UI: the detail page gets an "Adjust stock" action,
 not an editable quantity field.
 
-## Supplier — C owns
+## Supplier
 
 ```js
 /**
@@ -289,7 +289,7 @@ not an editable quantity field.
  */
 ```
 
-## PurchaseOrder — C owns
+## PurchaseOrder
 
 ```js
 /**
@@ -328,5 +328,5 @@ from a sales order line.
 
 Named here so nobody builds them speculatively: accounting/general ledger,
 payroll, manufacturing/BOM, multi-warehouse, multi-currency conversion,
-serial/batch tracking, CRM pipeline. If the intern leader asks for one, it gets
-added to this document first and assigned to one owner.
+serial/batch tracking, CRM pipeline. Adding one means specifying it in this
+document first.
