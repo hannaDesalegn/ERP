@@ -1,7 +1,6 @@
 # Deployment
 
-How this project goes live. Written for the pentest handover, but it is the
-real procedure.
+How this project is deployed.
 
 The two halves deploy separately and are joined by a rewrite, so the browser
 only ever talks to one origin:
@@ -24,11 +23,13 @@ configuration at the same time.
 
 ## Before anything goes public
 
-**Rotate the database password.** The connection string was shared through a
-chat message during development, which means it exists in a message history and
-in at least one notification. Atlas, Database Access, edit the user, set a new
-password, then update `MONGO_URI` everywhere it is used. Do this before the API
-is reachable from the internet, not after.
+**Rotate the database password and the token signing secret.** Any credential
+used during development should be treated as spent: development credentials get
+pasted into chat, shells and notifications, and none of those are places a
+production secret should live. In Atlas: Database Access, edit the user, set a
+new password, then update `MONGO_URI` everywhere it is used. Generate a fresh
+`JWT_SECRET` at the same time. Do this before the API is reachable from the
+internet, not after.
 
 ---
 
@@ -39,15 +40,17 @@ Already provisioned. Two settings matter:
 | Setting | Value | Note |
 |---|---|---|
 | Database user password | rotated, 24+ random characters | see above |
-| Network access | `0.0.0.0/0` | required, see below |
+| Network access | see below | |
 
-Render's free tier gives the service no fixed outbound IP address, so Atlas
-cannot allow-list it specifically and has to accept connections from anywhere.
-This is a real weakness and it is recorded as such in the pentest handover
-rather than hidden. The mitigation is that the only thing standing in front of
-the database is the password, so that password must be long and random. On a
-paid Render tier this is replaced with a static outbound IP and a narrow
-allow-list.
+The API host's free tier gives the service no fixed outbound IP address, so the
+database's IP access list cannot be narrowed to it specifically. A permissive
+access list leaves the database password as the only barrier, which is why that
+password must be long, random and rotated before the deployment is exposed. A
+paid tier provides a static outbound address and allows a narrow access list
+instead; that is the correct end state.
+
+Note that a permissive entry also admits everyone else. Review the access list
+before a deployment is left running unattended.
 
 ---
 
@@ -81,8 +84,8 @@ Note the service URL Render gives you. It is needed in the next step.
 
 **Free tier behaviour:** the service sleeps after roughly 15 minutes without
 traffic and takes 30 to 50 seconds to wake. The first request after a quiet
-period appears to hang. Tell the pentest team this, or they will report it as a
-denial-of-service finding.
+period appears to hang. This is hosting behaviour, not a fault in the
+application; mention it to anyone testing the deployment.
 
 ---
 
@@ -101,6 +104,12 @@ Run them in that order. `seed:operations` needs the accounts to attribute
 records to, and `seed:commercial` needs the products to price order lines from;
 each one says so and stops rather than guessing if you skip a step.
 
+`npm run seed` also needs `TEST_ADMIN_PASSWORD`, `TEST_MANAGER_PASSWORD` and
+`TEST_STAFF_PASSWORD` in `backend/.env`. No account password is stored in the
+repository. The script creates missing accounts only and never modifies an
+existing one, so it cannot reset a password that is already set — rotation goes
+through `PATCH /api/auth/password`.
+
 Both clear their own collections before inserting, so they are safe to run more
 than once — but note that "safe" means the result is the same, not that nothing
 is lost. Re-running `seed:commercial` during a test window destroys any customer,
@@ -113,10 +122,13 @@ documents actually in the database, and calculates every total with the same
 arithmetic as the route that would have produced the record — so a total that
 does not add up is a bug in the server, not in the seed.
 
-**The seeds need a direct connection to MongoDB on port 27017.** Networks that
-block it — a good many corporate and public ones do — will fail with Atlas's
-"IP isn't whitelisted" message whatever the allowlist actually says. Render's
-shell reaches it fine, and so does any network that permits 27017 outbound.
+**The seeds connect to MongoDB directly**, so the machine running them must be
+on the database's IP access list — not only the API host. If it is not, an
+Atlas shared-tier cluster accepts the TCP connection and then rejects the TLS
+handshake (`tlsv1 alert internal error`, SSL alert 80), which the driver reports
+as a server-selection failure mentioning the IP whitelist. A residential or
+mobile connection may change its public address between attempts; if an entry
+for the current address stops working, check whether the address has changed.
 
 ---
 
@@ -143,9 +155,14 @@ Environment variables:
 intercepts its own API calls and the deployed site never contacts the server at
 all, which looks like it works and proves nothing.
 
-**Then edit `frontend/vercel.json`** and replace
-`REPLACE-WITH-RENDER-URL.onrender.com` with the Render service URL from step 2.
-Commit and push; Vercel redeploys automatically.
+**Then point the rewrite at your API.** `frontend/vercel.json` holds the API
+service URL as the destination of the `/api/*` rewrite; set it to the Render
+service URL from step 2. Commit and push; Vercel redeploys automatically.
+
+Vercel rewrites cannot read environment variables, so this URL is necessarily
+committed. It is the API's public address, not a credential — but it does mean
+anyone reading the repository can find the API directly, so the API must be
+safe to reach without going through the frontend. It is designed to be.
 
 ---
 
@@ -157,6 +174,10 @@ The smoke test runs against any base URL, so point it at the deployment:
 cd backend
 BASE_URL=https://your-service.onrender.com node src/smokeOperations.js
 ```
+
+It signs in as the three test accounts, so `TEST_ADMIN_PASSWORD`,
+`TEST_MANAGER_PASSWORD` and `TEST_STAFF_PASSWORD` must be set in `backend/.env`
+or the environment. It exits before making any request if they are not.
 
 45 checks covering authentication, unauthenticated refusal, pagination,
 authorisation boundaries, validation, server-managed fields, stock adjustments

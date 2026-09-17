@@ -1,379 +1,312 @@
-# ERP — Frontend
+# ERP
 
-Internal ERP web application. Desktop-first, login-only, single-page app.
-Backend is planned but not yet built; the frontend runs against a mock API layer
-that mirrors the real contract exactly (see `docs/api-contract.md`).
+A web-based ERP (Enterprise Resource Planning) application covering the
+commercial and operations sides of a small trading business: customers, sales
+orders and invoices; products, stock, suppliers and purchase orders; with users,
+roles, settings, a dashboard and an audit trail underneath.
 
----
-
-## 1. Stack
-
-| Concern | Choice | Why |
-|---|---|---|
-| Language | JavaScript (ES2022) + JSDoc | Team decision. JSDoc typedefs give editor autocomplete without a TS build step. |
-| Framework | React 18 | Team already knows it. |
-| Build | Vite 5 | Fast dev server, simple env handling. |
-| Routing | React Router v6 | Nested layouts, protected routes. |
-| Styling | Tailwind CSS 3 | No separate CSS files to fight over. |
-| Components | shadcn/ui (Radix) | Copied into the repo, not installed — fewer npm dependencies, full control, keyboard + screen-reader behaviour included. |
-| Server state | TanStack Query v5 | Caching, loading/error states. Makes the backend swap near-free. |
-| Forms | React Hook Form + Zod | Zod schemas get handed to the backend team so validation matches. |
-| Mock API | MSW (Mock Service Worker) | Intercepts at the network layer — real `fetch`, real 401s, real pagination. |
-| Icons | lucide-react | Ships with shadcn. |
-| Tests | Vitest + Testing Library | Only for the shared kit and auth logic. |
-| Quality | ESLint, Prettier, Husky + lint-staged | No unformatted commits, no whitespace diffs. |
-
-**No external third-party APIs.** ERP data is internal by definition — customers,
-stock, orders. Nothing useful comes from outside. The only "API" in this project
-is our own contract.
+Built as a training project. **It holds no real data** — every record in the
+repository and in the demo database is invented, and no real company, person,
+email address or phone number appears anywhere in it.
 
 ---
 
-## 2. Getting started
+## Contents
+
+- [What it does](#what-it-does)
+- [Architecture](#architecture)
+- [Repository layout](#repository-layout)
+- [Running it locally](#running-it-locally)
+- [Environment variables](#environment-variables)
+- [Seeding data](#seeding-data)
+- [Tests and checks](#tests-and-checks)
+- [Deployment](#deployment)
+- [Security](#security)
+- [Known limitations](#known-limitations)
+- [Documentation](#documentation)
+
+---
+
+## What it does
+
+| Area | Capabilities |
+|---|---|
+| Customers | Create, edit, list and search customers; per-customer order and invoice history; credit limits and payment terms |
+| Sales orders | Multi-line orders with per-line discount and tax; server-calculated totals; draft → pending approval → approved, or cancelled |
+| Invoices | Raised standalone or against an order; payment recording; `overdue` derived on read from due date and outstanding amount |
+| Products | Catalogue with categories, cost and selling price, reorder levels; stock changes only through adjustment records |
+| Suppliers | Supplier records with balances derived from received purchase orders |
+| Purchase orders | Multi-line orders with an explicit table of legal status transitions |
+| Users and roles | Role-based permissions across 36 permission strings, enforced server-side |
+| Dashboard | Summary counts and key figures |
+| Audit log | Every state-changing request recorded, readable only by administrators |
+
+Money is stored as integers in minor units throughout — never floating point.
+Totals are always recalculated server-side and a total supplied by a client is
+discarded.
+
+---
+
+## Architecture
+
+Three deployable pieces: a React single-page app, an Express API, and MongoDB.
+
+```
+Browser (React SPA)  ──▶  Express API  ──▶  MongoDB
+```
+
+The frontend can also run entirely without the backend: Mock Service Worker
+intercepts requests at the network layer and serves the same API contract from
+in-memory fixtures. That mode is the default for local development.
+
+### Stack
+
+| Layer | Technology |
+|---|---|
+| Language | JavaScript (ES2022) with JSDoc type annotations |
+| Frontend | React 18, Vite 5, React Router 6, Tailwind CSS 3 |
+| UI components | shadcn/ui (Radix primitives), vendored into the repo rather than installed |
+| Server state | TanStack Query 5 |
+| Forms and validation | React Hook Form with Zod schemas shared in shape with the API |
+| Mock API | Mock Service Worker |
+| Backend | Node.js 20+, Express 4, Mongoose 8 |
+| Database | MongoDB |
+| Auth | JSON Web Tokens, bcrypt password hashing |
+| Tests | Vitest and Testing Library (frontend); a scripted API smoke test (backend) |
+| Tooling | ESLint, Prettier, Husky, lint-staged |
+
+No third-party external APIs are used. The only API in the project is its own.
+
+---
+
+## Repository layout
+
+```
+backend/
+  src/
+    models/        Mongoose schemas
+    routes/        Express routers, one per resource
+    middleware/    auth, permissions, rate limiting, security headers, audit log, errors
+    validation/    Zod schemas for request bodies
+    utils/         pagination, totals, sequences, password rules
+    seed*.js       database seed scripts
+    smokeOperations.js   API smoke test
+frontend/
+  src/
+    app/           router, providers, module registry
+    auth/          auth context and route guards
+    components/ui/ shared component kit
+    layouts/       app shell
+    lib/           API client
+    mocks/         Mock Service Worker setup and shared handlers
+    modules/       one folder per business module
+docs/              API contract, entity, component and security documentation
+```
+
+Each module under `frontend/src/modules/` follows the same shape: `index.js`
+exports routes, navigation and mock handlers; `api.js` holds fetch functions and
+query keys; `schema.js` holds Zod schemas; `mock.js` holds fixtures; `pages/`
+holds the screens.
+
+---
+
+## Running it locally
+
+Requires Node.js 20 or newer.
+
+### Frontend only, against the mock API
+
+No backend or database needed.
 
 ```bash
+cd frontend
 npm install
-npm run dev          # http://localhost:5173
-npm run lint
-npm run format
-npm run test
+cp .env.example .env     # VITE_USE_MOCKS defaults to true
+npm run dev              # http://localhost:5173
 ```
 
-Copy `.env.example` to `.env`. Note that **anything prefixed `VITE_` is compiled
-into the public bundle and visible to any user.** Never put a secret there.
+Sign in with any of the mock accounts listed in
+`frontend/src/mocks/authHandlers.js`. These exist only in the browser, are not
+connected to any database, and are reset on every page load.
 
-Demo login while MSW is active:
+### Full stack, against a real database
 
-```
-admin@example-erp.test / Password123!     (all permissions)
-sales@example-erp.test / Password123!     (commercial modules only)
-ops@example-erp.test   / Password123!     (operations modules only)
+```bash
+# 1. API
+cd backend
+npm install
+cp .env.example .env     # fill in MONGO_URI and JWT_SECRET
+npm run dev              # http://localhost:8000
+
+# 2. Frontend, in a second terminal
+cd frontend
+npm install
+cp .env.example .env
+# set VITE_USE_MOCKS=false so requests reach the API
+npm run dev
 ```
 
 ---
 
-## 3. Folder structure and ownership
+## Environment variables
 
-Each person writes **only** inside their own folders. This is the single rule
-that keeps three people out of each other's diffs.
+Copy `.env.example` to `.env` in each package and fill it in. `.env` files are
+git-ignored and must never be committed.
 
-```
-src/
-  app/
-    router.jsx            ← A   route tree, assembled from module registries
-    registry.js           ← A   imports each module's routes + nav entries
-    providers.jsx         ← A   QueryClient, Router, Toaster, ErrorBoundary
-  components/ui/          ← A   the shared kit — DO NOT EDIT, request changes
-  layouts/                ← A   AppShell, AuthLayout
-  lib/
-    apiClient.js          ← A   fetch wrapper, auth header, 401 refresh
-    auth/                 ← A   AuthProvider, useAuth, ProtectedRoute, <Can>
-    format.js             ← A   money, date, number formatting
-  mocks/
-    browser.js            ← A   MSW worker setup
-    handlers.js           ← A   collects handlers from each module
-  styles/                 ← A   tokens.css, tailwind entry, print.css
+### `backend/.env`
 
-  modules/
-    customers/            ← B   pages, components, mock data, schema, handlers
-    orders/               ← B
-    invoices/             ← B
-    products/             ← C
-    suppliers/            ← C
-    purchasing/           ← C
+| Variable | Purpose |
+|---|---|
+| `MONGO_URI` | MongoDB connection string |
+| `JWT_SECRET` | Secret for signing access tokens. A long random string |
+| `PORT` | Port the API listens on. Defaults to 8000 |
+| `CORS_ORIGIN` | Exact browser origin permitted by CORS. Never `*` |
 
-  pages/                  ← A   Dashboard, Settings, Users, Login, 404, 403
+### `frontend/.env`
 
-docs/                     ← shared, changes require all three to agree
-```
+| Variable | Purpose |
+|---|---|
+| `VITE_API_BASE_URL` | Base path for API calls |
+| `VITE_USE_MOCKS` | `true` serves the app from Mock Service Worker; `false` sends requests to the API |
+| `VITE_API_PROXY_TARGET` | Where the dev server proxies `/api` when mocks are off |
+| `VITE_APP_ENV` | Environment label shown in the interface |
 
-Every module folder is self-contained:
-
-```
-modules/customers/
-  index.js            exports customerRoutes + customerNav + customerHandlers
-  pages/              CustomerListPage.jsx, CustomerDetailPage.jsx, CustomerFormPage.jsx
-  components/         CustomerTable.jsx, CustomerStatusBadge.jsx
-  schema.js           Zod schemas for create/update
-  mock.js             this module's fake records
-  handlers.js         this module's MSW handlers
-  api.js              this module's fetch functions + query keys
-```
-
-### Registry pattern
-
-`src/app/registry.js` is the only file more than one person's work touches, and
-it is touched exactly once per module, at the start:
-
-```js
-// modules/customers/index.js      ← B owns this file entirely
-export const customerNav    = { label: 'Customers', icon: Users, path: '/customers', permission: 'customers.view' };
-export const customerRoutes = [ /* ... */ ];
-export const customerHandlers = [ /* MSW handlers */ ];
-
-// src/app/registry.js             ← A adds one import line per module, then never again
-```
-
-### Naming rules
-
-- Module components are **prefixed**: `CustomerTable`, `ProductTable`,
-  `OrderStatusChip`. Never a bare `Table.jsx` in three different folders.
-- Mock data is **per module**. `modules/customers/mock.js`, never a shared
-  `mockData.js`. If C needs a customer record, C duplicates one. Duplication is
-  cheaper than coordination here.
-- Query keys are namespaced: `['customers', 'list', params]`.
+Anything prefixed `VITE_` is compiled into the public bundle and is readable by
+any user. No secret, key or credential belongs in a `VITE_` variable.
 
 ---
 
-## 4. Git
+## Seeding data
 
-- Branch per person: `feat/foundation`, `feat/commercial`, `feat/operations`.
-- Merge to `dev` **at least every two days.** Long-lived branches are where the
-  real conflicts hide.
-- `main` is protected. `dev` requires one approving review.
-- Lockfile conflict: whoever merges second deletes their `package-lock.json`,
-  re-runs `npm install`, commits the result. Never hand-edit a lockfile.
-- No new dependency in `src/components/ui`, `src/lib`, or `src/app` without all
-  three agreeing. Supply chain is our realest security risk.
+Run from `backend/`, in this order — each script depends on the one before it
+and will stop rather than guess if you skip a step.
 
----
-
-## 5. Team split
-
-| | Owner | Scope |
-|---|---|---|
-| **A** | Foundation | Tokens, shell, router, auth plumbing, shared kit, MSW harness, Dashboard, Settings, Users & Roles, print styles |
-| **B** | Commercial | Customers, Sales Orders, Invoices |
-| **C** | Operations | Products/Inventory, Suppliers, Purchase Orders |
-
-B and C are mirror workloads — the same list → detail → form → status pattern,
-three times each — and neither depends on the other at any point.
-
----
-
-## 6. Timeline
-
-| | Week 1 | Week 2 | Week 3 |
-|---|---|---|---|
-| **A** | Repo, tokens, docs sign-off, kit v0, MSW harness | Shell, auth, `<Can>`, kit polish | Dashboard, Settings, Users & Roles, print, OWASP pass |
-| **B** | Mock data + handlers, Customers | Sales Orders | Invoices |
-| **C** | Mock data + handlers, Products | Suppliers | Purchase Orders |
-
-**End of week 2 there is a clickable app.** That is the demo for the intern
-leader. Vague briefs produce specific feedback once someone sees something real.
-
----
-
-## 7. Read before writing code
-
-1. `docs/entities.md` — the data shapes. **Signed off by all three before any
-   form is built.**
-2. `docs/api-contract.md` — endpoint shapes, response envelope, error format.
-3. `docs/components.md` — locked prop signatures for the shared kit.
-4. `docs/security-notes.md` — what the frontend can and cannot enforce.
-
----
-
-## 8. Known gaps
-
-Things that are deliberately unfinished. Listed here so nobody reports them as
-bugs, and so none of them reach the demo by being quietly forgotten. Anything
-that must be gone before the demo says so.
-
-### Global search (topbar)
-
-Disabled, with the placeholder "Global search — coming soon".
-
-**Blocked on the backend, not on us.** Searching `acme` must return customers,
-orders, invoices, products, suppliers and purchase orders in one ranked list,
-scoped to what the user may see. That needs a single endpoint spanning every
-module — `GET /api/search?q=`. MSW cannot fake it usefully: stitching per-module
-mock arrays together gives a result set that looks right and ranks wrong, and we
-would build the UI against the wrong shape.
-
-Post-backend item. Not scheduled, no owner yet.
-
-### Real auth — **done, except for session persistence**
-
-`STUB_USER` is gone. `src/auth/` now holds the whole flow: `AuthContext.jsx`
-(state, `login`, `logout`, `<Can>`, `useCan`), `ProtectedRoute.jsx` and
-`RequireRole.jsx`. `POST /auth/login`, `GET /auth/me` and `POST /auth/logout`
-are mocked in `src/mocks/authHandlers.js` against three seed accounts —
-`admin@zion.test`, `manager@zion.test`, `staff@zion.test`.
-
-The access token lives in React state and nowhere else, so **a page refresh
-signs you out**. That is the documented decision, not a bug
-(`docs/security-notes.md` § Token handling), and it is the one piece still
-outstanding: booting from `POST /auth/refresh` against an httpOnly cookie, as
-specified in `docs/api-contract.md` §3. `isLoading` on the auth context already
-exists for it and `ProtectedRoute` already branches on it, so that work should
-not touch any consumer.
-
-`GET /auth/me` is written and correct but currently unreferenced — with no
-persisted token there is nothing to restore on mount. It becomes live with
-refresh.
-
-### "Remember me" — removed pending `/auth/refresh`
-
-The login form had a "Remember me" checkbox. It is gone: the access token lives
-in React state, so nothing survives a page load and the control could not do
-anything. Staying signed in across a refresh is a backend concern — an httpOnly
-refresh cookie and `POST /auth/refresh` (`docs/api-contract.md` §3), not a
-client-side box to tick.
-
-Bring it back when refresh lands, and only if it then changes behaviour.
-
-### 4 tests red — `LoginPage.test.jsx`
-
-All four cases fail with `useAuth must be used inside <AuthProvider>`. The test
-renders `<LoginPage />` bare in a `MemoryRouter`, which was enough when submit
-was a fake 1.2s delay. It now needs an `AuthProvider`, a `QueryClientProvider`
-and MSW, and two of its cases still assert on the removed "Remember me"
-checkbox.
-
-Left red deliberately rather than half-fixed. To be sorted out with the MSW test
-setup — `src/mocks/server.js` via `setupServer`, wired into `src/test/setup.js`,
-plus a render helper that wraps the providers.
-
-### Row actions render but do nothing — customers, and everything copied from it
-
-`CustomerListPage` renders Edit and Delete in the row menu. Neither works:
-
-- **Edit** calls `navigate('/customers/:id/edit')`, and `customerRoutes` exports
-  only `{ path: '/customers' }`. There is no detail route and no edit route, so
-  the click falls through to the catch-all and renders the 404 page inside the
-  shell.
-- **Delete** is `onClick: () => {}` — no confirm, no request, no feedback. It
-  looks like a no-op bug from the user's side, because it is one.
-
-The detail, edit and delete flows were never built in the reference module. That
-matters more than one module's gap: `orders` was copied from it and has the
-identical pair — `navigate('/orders/:id/edit')` against a single `/orders`
-route, and an empty Delete handler. `invoices` carries it too. Any module copied
-from the reference inherits both until the reference is finished.
-
-Owned by B. The row actions should either be wired or removed — a menu entry
-that silently does nothing is worse than an absent one.
-
-### Invoices is not registered
-
-`src/app/registry.js` imports `orders` but holds `invoices` out, commented with
-a `TODO(B)`. Registering it fails the build:
-
-```
-"invoiceKeys" is not exported by "src/modules/invoices/api.js",
-imported by "src/modules/invoices/pages/InvoiceListPage.jsx"
+```bash
+npm run seed              # roles and user accounts
+npm run seed:operations   # categories, products, suppliers, purchase orders
+npm run seed:commercial   # customers, sales orders, invoices
 ```
 
-`src/modules/invoices/api.js` is still the copied customers file — the header
-reads "Customers API", `RESOURCE` is `'/customers'`, and it exports
-`customerKeys` / `fetchCustomers` rather than the `invoice*` names the page
-imports. That module's `index.js` and `handlers.js` are already correct, so the
-fix is confined to `api.js`: rename `RESOURCE`, the key namespace, and the six
-CRUD functions. Then uncomment the import and the three spreads in the registry.
+`npm run seed` creates the test accounts from `TEST_ADMIN_PASSWORD`,
+`TEST_MANAGER_PASSWORD` and `TEST_STAFF_PASSWORD`. Set them in `backend/.env`
+first; no account password is stored in the repository. It creates missing
+accounts only and never changes an existing one, so it cannot be used to reset a
+password — use `PATCH /api/auth/password` for that.
 
-Until that lands, invoices has no route, no nav entry, and no mock handlers.
+Each script clears the collections it owns before inserting, so re-running one
+reproduces the same result rather than duplicating records. That also means
+re-running one discards anything created in those collections since.
 
-### DataTable still has its own inline skeletons
+The seeds calculate every total using the same arithmetic as the route that
+would otherwise have produced the record, so seeded data is consistent with what
+the API generates.
 
-`<Skeleton>` shipped, but `DataTable` does not use it. Two places still build
-their own placeholders inline:
+---
 
-- the table body row, `h-3 w-full animate-pulse rounded-sm bg-bg` (~line 387)
-- the `MobileCards` card, `h-24 animate-pulse rounded-md ...` (~line 469)
+## Tests and checks
 
-Both differ from the component in ways that matter. They use plain
-`animate-pulse`, which the global rule in `styles/tailwind.css` only clamps to
-`0.01ms` — the animation is frozen rather than absent, where `<Skeleton>` uses
-`motion-safe:` and removes it outright under `prefers-reduced-motion`. The row
-bar is also `bg-bg`, which only reads against `bg-surface`, where the component
-uses `bg-border` and works on either ground.
+```bash
+cd frontend
+npm run test           # Vitest
+npm run lint           # ESLint
+npm run format:check   # Prettier
+```
 
-Left as a deliberate follow-up rather than folded into the component work:
-swapping them changes the loading appearance of every list page in the app, so
-it deserves its own change and its own look.
+The backend has no unit test suite. It has a scripted smoke test that exercises
+the operations endpoints against a running server and a real database, covering
+authentication, authorisation, validation, server-managed fields, stock
+adjustments and the purchase order lifecycle:
 
-### FormTextarea has no character counter
+```bash
+cd backend
+BASE_URL=http://localhost:8000 node src/smokeOperations.js
+```
 
-`FormTextarea` delegates to `FormField`, which already renders a `<textarea>`
-when `type="textarea"`. That keeps one textarea implementation in the kit
-instead of two that can drift, and `maxLength` passes straight through.
+**Current state:** ESLint reports no errors (4 `react-refresh` warnings). The
+frontend test suite has one test file, `LoginPage.test.jsx`, and its 4 tests
+currently fail — the component is rendered without the `AuthProvider` it
+depends on. This is a known failure in the test setup, not in the application.
 
-The cost is that setting `maxLength` gives no character counter — the input
-simply stops accepting characters, with nothing telling the user why. Adding one
-means abandoning the delegation and writing `FormTextarea` standalone, at which
-point the kit has two textareas to keep in step. Deliberate trade, recorded so
-the next person does not "fix" the delegation without knowing what it bought.
+---
 
-### FieldShell — done, ahead of the trigger this entry set
+## Deployment
 
-Extracted in `f094cdb`, before `FormDate`, `FormSection`, `FormRow` and
-`FormActions` landed rather than after — four copies of the label / hint / error
-block were already enough on their own.
+The application is deployed as a static frontend, a separately hosted API, and a
+managed MongoDB instance. The browser reaches the API through a rewrite on the
+application domain, so both share an origin and no cross-origin cookie is
+involved.
 
-`FieldShell.jsx` is kit-internal, not exported from `index.js`. `FormField`,
-`FormSelect`, `FormMoney` and `FormCheckbox` render through it with unchanged
-DOM, and `FormDate` inherits it by delegating to `FormField`. The other three
-never touch it and should not: `FormSection` has a heading rather than a label,
-`FormRow` is a grid and `FormActions` is two buttons, so none of them owns a
-control for the shell's generated id and `aria-describedby` to attach to.
+`DEPLOY.md` documents the full procedure, the required environment variables and
+the rollback steps.
 
-Nothing here is outstanding; the entry stays only so the plan it used to
-describe is not carried out a second time.
+---
 
-### No husky pre-commit hook
+## Security
 
-`husky` is installed and `core.hooksPath` points at `frontend/.husky`, and
-`lint-staged` is configured in `frontend/package.json` — but there is no
-`frontend/.husky/pre-commit`, so **nothing runs on commit**. Unformatted code
-and lint errors can land.
+A training project, but written against a threat model rather than by habit.
+`docs/security-notes.md` records the reasoning; the short version:
 
-The hook needs one line, `cd frontend && npx lint-staged`; the `cd` is required
-because git runs hooks from the repo root and the package lives in `frontend/`.
-Alternatively a root `package.json` could own husky instead.
+- **Authorisation is enforced server-side on every endpoint, including reads.**
+  Every route carries a required permission string checked against the signed-in
+  user's role. The interface also hides controls a user lacks permission for,
+  but that is a usability measure and secures nothing on its own.
+- **Passwords** are hashed with bcrypt and the field is excluded from queries by
+  default. The password policy follows current NIST guidance — a length minimum
+  and a common-password rejection list rather than composition rules.
+- **Request bodies** are parsed against Zod schemas that discard unknown fields,
+  and updates are built field by field from an allow-list rather than by
+  spreading the request body, so server-managed fields cannot be set by a client.
+- **Money and stock** are server-calculated. There is no endpoint that sets a
+  stock quantity directly; stock moves only through adjustment records.
+- **Errors** are logged server-side and returned as a generic message, without
+  stack traces or database detail.
+- **Rate limiting** is applied to sign-in attempts, by source address and by
+  targeted account, counted separately.
+- **Security headers** are set on API responses, with a Content-Security-Policy
+  on the application itself.
+- **Audit logging** records every state-changing request, including failed
+  attempts, and is readable only with the `audit.view` permission.
 
-### Restart the dev server after any MSW handler change
+These describe what is implemented. They are not a claim that the application
+has been independently verified as secure. Known weaknesses are recorded in the
+security documentation rather than omitted, and an external review is the point
+at which any of it gets confirmed.
 
-Whenever a handler file changes, restart the dev server — pulling someone
-else's changes, or editing your own. The service worker is registered at
-startup, and handler edits do not reach it through HMR the way component edits
-reach the page.
+To report a vulnerability, follow [`SECURITY.md`](SECURITY.md). Please do not
+open a public issue for security problems.
 
-It shows as **"The server returned an unreadable response" on every API call**,
-including login, which reads like broken auth rather than a stale worker. The
-message looks that way because the proxy in `vite.config.js` is unconditional:
-anything MSW does not intercept is forwarded to `VITE_API_PROXY_TARGET`
-(`localhost:8000` by default), nothing is listening there, and the proxy's error
-body is not JSON — so `apiClient` reports it as unparseable rather than as a
-missing mock.
+---
 
-Not a bug. Recorded because it cost twenty minutes to diagnose the first time —
-after pulling C's operations modules — and caught someone again straight away
-while editing `dashboardHandlers.js`.
+## Known limitations
 
-### Outstanding `npm audit` advisories
+Stated plainly, because they are the honest current state of a project built to
+a deadline:
 
-`docs/security-notes.md` §5 requires `npm audit` clean at high and above before
-the demo. It is not. Every remaining fix is a major upgrade that contradicts the
-stack table in §1, so each is a group decision.
+- **The frontend test suite does not pass.** See [Tests and checks](#tests-and-checks).
+- **No refresh token rotation.** A single JWT valid for 24 hours. Signing out
+  clears client state, but the token remains valid until it expires.
+- **Deletes are permanent.** There is no soft delete or restore.
+- **The audit log records the request and the outcome, not the prior state** of
+  the record, so it shows that a change happened but not what the record looked
+  like before.
+- **`Customer.balance` is not maintained by any route.** It is set to zero on
+  creation and never recalculated; recording a payment does not move it.
+- **Outstanding `npm audit` advisories.** Each remaining fix requires a major
+  version upgrade. One of them — an open redirect in React Router 6 — ships in
+  the production bundle; the only patched release is React Router 7.
+- **Object-level authorisation is thinner than route-level authorisation.**
+  Route permissions are in place everywhere; per-record ownership checks are not
+  applied consistently.
 
-| Package | Severity | Reach | Only fix |
-|---|---|---|---|
-| `vitest` | critical | dev only; needs the Vitest UI server listening, which we do not use | Vitest 3+ (pulls Vite 6+) |
-| `vite` | high | dev server only; two of the three are Windows-specific (NTLMv2 hash disclosure via UNC paths, `server.fs.deny` bypass) — and we are all on Windows | Vite 8 |
-| `react-router` | moderate | **ships in the production bundle** | React Router 7 |
+---
 
-Take the React Router one first. It is an open redirect via backslash in `<Link>`
-and `useNavigate`, and it lands squarely on the `/login?next=<path>` redirect in
-`docs/api-contract.md` §3. There is no patched 6.x — we are on 6.30.4, the
-latest v6, and it is still in range.
+## Documentation
 
-### Temporary code to delete before the demo
-
-- `src/pages/KitchenSinkPage.jsx` and its `/kitchen-sink` route — the kit
-  reference page.
-- The seed accounts and plaintext passwords in `src/mocks/authHandlers.js` —
-  they go with the rest of MSW when the real auth service lands.
-- The `demo-server-error` and `demo-validation-error` handlers in
-  `src/modules/customers/handlers.js` are **not** in this list. They are how
-  error states get tested and they stay until the real backend does.
+| Document | Contents |
+|---|---|
+| `docs/entities.md` | Every entity, field by field, with types and nullability |
+| `docs/api-contract.md` | Endpoints, envelopes, pagination, filtering, error shapes |
+| `docs/components.md` | The shared component kit |
+| `docs/security-notes.md` | Threat model and the control checklist behind the security section above |
+| `DEPLOY.md` | Deployment procedure and rollback |
+| `SECURITY.md` | How to report a vulnerability |
