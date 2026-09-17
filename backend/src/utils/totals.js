@@ -1,7 +1,7 @@
-// Purchase order money maths — C owns this file.
+// Purchase order money maths.
 //
-// backend-plan.md §5: totals are calculated server-side and a total sent by a
-// client is never trusted. This is the only place they are computed.
+// Totals are calculated server-side and a total sent by a client is never
+// trusted. This is the only place they are computed.
 //
 // Deliberately identical to calculateLineTotal/calculateTotals in
 // frontend/src/modules/purchasing/mock.js, including the rounding order. The UI

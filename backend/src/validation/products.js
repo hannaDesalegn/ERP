@@ -1,6 +1,6 @@
-// Product validation — C owns this file. Ported from
-// frontend/src/modules/products/schema.js, which backend-plan.md §3 names as
-// the executable version of these rules.
+// Product validation. Ported from
+// frontend/src/modules/products/schema.js, the executable version of these
+// rules.
 //
 // Server-managed fields are absent from every schema here, and validateBody
 // parses rather than checks, so Zod strips them. That is the mass-assignment

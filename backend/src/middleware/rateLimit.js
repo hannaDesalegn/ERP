@@ -1,18 +1,16 @@
 /**
- * Login rate limiting — added by C ahead of the external security review.
+ * Login rate limiting.
  *
- * docs/backend-plan.md §7 put rate limiting out of scope for the four-day
- * build, which was the right call for something running on one laptop. The
- * application is now publicly reachable and being tested by an external team,
- * so an unthrottled login endpoint is a different proposition: an attacker can
+ * Rate limiting was not part of the initial build, which ran on one machine.
+ * Once the application is publicly reachable, an unthrottled login endpoint is a
+ * different proposition: an attacker can
  * try passwords as fast as the network allows.
  *
- * Deliberately hand-written rather than pulling in express-rate-limit. The
- * README requires all three of us to agree before a dependency lands in shared
- * code, and the supply chain is called out in docs/security-notes.md as our
- * most realistic risk. Forty lines we can read beats a package we cannot.
+ * Deliberately hand-written rather than pulling in express-rate-limit. New
+ * dependencies in shared code require review, and the supply chain is called
+ * out in docs/security-notes.md as the most realistic risk. Forty lines we can read beats a package we cannot.
  *
- * LIMITATIONS, stated plainly because they belong in the pentest handover:
+ * LIMITATIONS, stated plainly:
  *  - State lives in this process's memory. A restart clears it, and two Render
  *    instances would each keep their own count. Redis is the real answer and is
  *    out of scope here.

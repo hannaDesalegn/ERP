@@ -1,6 +1,6 @@
-// Supplier routes — C owns this file.
+// Supplier routes.
 //
-// The simplest of C's three: the five verbs plus one nested list. Same rules as
+// The simplest of the three operations resources: the five verbs plus one nested list. Same rules as
 // everywhere else — permission on every route including GET, allow-listed PATCH
 // fields, and server-generated code.
 

@@ -1,12 +1,11 @@
 /**
- * Audit log — added by C with the team's agreement to edit shared files.
+ * Audit log.
  *
  * docs/security-notes.md §4 calls this non-negotiable for an ERP: "who, what,
  * when, before, after", because approvals and stock adjustments are exactly the
- * things people dispute afterwards. It was put out of scope for the four-day
- * build (docs/backend-plan.md §7) and is now in.
+ * things people dispute afterwards.
  *
- * HONEST LIMITATION, repeated in the pentest handover: this records the request
+ * KNOWN LIMITATION: this records the request
  * and the resulting state, not the prior state. Capturing "before" means
  * reading each record ahead of the write, which only the individual route
  * handler can do, and doing that would mean editing every write route in all

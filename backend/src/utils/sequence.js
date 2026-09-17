@@ -1,4 +1,4 @@
-// Human-readable document numbers — C owns this file.
+// Human-readable document numbers.
 //
 // SKU-0001, SUP-0001, PO-2026-0001. These are server-generated: entities.md
 // marks them read-only in the UI and the create schemas leave them out, so a

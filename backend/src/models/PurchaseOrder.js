@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-// PurchaseOrder — C owns this model. Mirrors docs/entities.md § PurchaseOrder.
+// PurchaseOrder. Mirrors docs/entities.md § PurchaseOrder.
 //
 // A PO line is a LineItem plus quantityReceived, which is the one field that
 // makes it differ from a sales order line and what drives the

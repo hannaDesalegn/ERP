@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-// StockAdjustment — C owns this model. Mirrors docs/entities.md.
+// StockAdjustment. Mirrors docs/entities.md.
 //
 // This collection is the audit trail. Stock is never edited by writing a new
 // quantityOnHand; it changes only by appending one of these, which is a real

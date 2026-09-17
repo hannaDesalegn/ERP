@@ -1,6 +1,6 @@
-// Purchase order routes — C owns this file.
+// Purchase order routes.
 //
-// Two rules from backend-plan.md §5 shape everything here:
+// Two rules shape everything here:
 //
 //   1. Status changes are POST actions, not PATCH. Each transition has its own
 //      permission and its own preconditions, and none of them can be reached by
@@ -330,7 +330,7 @@ router.post(
 );
 
 /**
- * Receive goods. The one route in C's set that changes another module's data.
+ * Receive goods. The one operations route that changes another module's data.
  *
  * For each line the body names, it records what actually arrived, then moves
  * that quantity into stock as a StockAdjustment — never by writing

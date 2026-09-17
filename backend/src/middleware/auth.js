@@ -20,8 +20,8 @@ export async function requireAuth(req, res, next) {
     }
 
     // Loaded fresh every request, so a suspended account or a changed role takes
-    // effect now rather than up to 24 hours later when the token expires
-    // (backend-plan.md §4). Role is populated here so permissions.js can use it.
+    // effect now rather than up to 24 hours later when the token expires.
+    // Role is populated here so permissions.js can use it.
     const user = await User.findById(payload.sub).populate('roleId');
 
     if (!user || user.status !== 'active') {

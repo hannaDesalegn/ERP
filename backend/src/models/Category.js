@@ -1,12 +1,12 @@
 import mongoose from 'mongoose';
 
-// Product categories — C owns this model.
+// Product categories.
 //
 // docs/entities.md defines Product.categoryId and the denormalised
 // Product.categoryName but never defines Category itself, even though
 // GET /api/products/categories is in the contract. This is the minimum the
-// endpoint and the product form need. Raised in the group chat; if the shape
-// grows, entities.md gets the field first.
+// endpoint and the product form need. If the shape grows, entities.md gets the
+// field first.
 const categorySchema = new mongoose.Schema(
   {
     name: { type: String, required: true, unique: true, trim: true },

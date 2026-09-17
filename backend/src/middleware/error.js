@@ -57,7 +57,7 @@ export function notFoundHandler(req, res, next) {
 export function errorHandler(err, req, res, next) {
   const known = err instanceof ApiError;
 
-  // Unexpected: log the real thing for us, tell the client nothing useful.
+  // Unexpected: log the real error server-side, tell the client nothing useful.
   // No stack traces, no library names, no Mongo messages.
   if (!known) console.error(err);
 

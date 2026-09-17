@@ -1,4 +1,4 @@
-// Supplier validation — C owns this file. Ported from
+// Supplier validation. Ported from
 // frontend/src/modules/suppliers/schema.js.
 //
 // `balance` is absent on purpose. It is what we owe the supplier, derived from

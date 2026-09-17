@@ -1,5 +1,5 @@
 /**
- * Audit log read endpoint — added by C with the team's agreement.
+ * Audit log read endpoint.
  *
  * An audit trail nobody can read is only half of the control. This exposes it
  * to administrators, filterable by resource, record and person, so "who

@@ -1,6 +1,6 @@
 // backend/src/routes/invoices.js
 //
-// B owns this file. status can read as "overdue" without ever being stored
+// status can read as "overdue" without ever being stored
 // that way — see toResponse() below. Status changes beyond that are POST
 // actions (send/record-payment/void), never PATCH.
 

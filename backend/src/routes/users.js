@@ -112,8 +112,7 @@ function asConflictIfDuplicate(err) {
  *
  * Search covers firstName, lastName and email. The mock also searches roleName,
  * which cannot be done here: roleName is denormalised from the populated role
- * rather than stored on the user, so there is no field for Mongo to match. See
- * the note in the handover summary.
+ * rather than stored on the user, so there is no field for Mongo to match.
  */
 router.get('/', requirePermission('users.view'), async (req, res, next) => {
   try {
@@ -246,7 +245,7 @@ router.patch(
  * sign in to undo it. 409 rather than 403 — the caller is allowed to delete
  * users, this particular target conflicts with the session making the request.
  *
- * TODO(A): the related rule — refusing to delete or demote the last remaining
+ * TODO: the related rule — refusing to delete or demote the last remaining
  * admin — is a different check and is not implemented here, matching the mock.
  */
 router.delete('/:id', requirePermission('users.delete'), async (req, res, next) => {

@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-// Product — C owns this model. Mirrors docs/entities.md § Product field for
+// Product. Mirrors docs/entities.md § Product field for
 // field: same names, same types, same nullability.
 //
 // Money is an integer in minor units, never a float. Quantities are plain

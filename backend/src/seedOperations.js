@@ -1,14 +1,14 @@
 /**
- * Operations seed — C owns this file.
+ * Operations seed.
  *
  * Populates products, categories, stock adjustments, suppliers and purchase
- * orders. A's src/seed.js creates the roles, the admin account and one record
+ * orders. src/seed.js creates the roles, the admin account and one record
  * per collection so the app boots; this fills the operations side with enough
  * data to actually demonstrate and test against.
  *
- * Run it after A's seed:
- *   npm run seed            # roles, users, minimal records  (A)
- *   npm run seed:operations # this file                      (C)
+ * Run it after the base seed:
+ *   npm run seed            # roles, users, minimal records
+ *   npm run seed:operations # this file
  *
  * The fixtures are imported from the frontend module folders rather than
  * retyped here. They were written for the mock API and are already the exact

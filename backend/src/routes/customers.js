@@ -1,6 +1,6 @@
 // backend/src/routes/customers.js
 //
-// B owns this file. Mirrors the frontend's api.js/handlers.js contract, now
+// Mirrors the frontend's api.js/handlers.js contract, now
 // backed by real MongoDB instead of an in-memory array.
 
 import express from 'express';
@@ -19,8 +19,7 @@ const router = express.Router();
 router.use(requireAuth);
 
 // ── Validation ────────────────────────────────────────────────────────────
-// Copied from the frontend's schema.js, per backend-plan.md §3 — not
-// reinvented here. Server-managed fields (code, balance, timestamps) are
+// Copied from the frontend's schema.js rather than reinvented here. Server-managed fields (code, balance, timestamps) are
 // deliberately absent, same reasoning as the frontend: mass-assignment
 // protection. Zod strips anything not listed, so a client can't smuggle them
 // in even if it tries.
@@ -178,7 +177,7 @@ router.patch(
   validateBody(customerUpdateSchema),
   async (req, res, next) => {
     try {
-      // Allow-list the update, per backend-plan.md §6.4 — never spread req.body
+      // Allow-list the update (docs/security-notes.md §4) — never spread req.body
       // wholesale, even though validateBody already stripped unknown keys.
       // This is the second, explicit layer: only these fields are writable.
       const allowed = [

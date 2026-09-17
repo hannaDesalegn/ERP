@@ -1,4 +1,4 @@
-// Purchase order validation — C owns this file. Ported from
+// Purchase order validation. Ported from
 // frontend/src/modules/purchasing/schema.js.
 //
 // Absent on purpose, in every schema here: poNumber, supplierName, all totals,

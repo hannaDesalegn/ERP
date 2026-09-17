@@ -1,7 +1,7 @@
 // backend/src/routes/orders.js
 //
-// B owns this file. Status changes are POST actions (submit/approve/cancel),
-// never PATCH — see docs/backend-plan.md §5. Totals are always recalculated
+// Status changes are POST actions (submit/approve/cancel),
+// never PATCH — see docs/api-contract.md §4. Totals are always recalculated
 // here from the line items; a client-sent total is never trusted or stored.
 
 import express from 'express';
@@ -56,9 +56,9 @@ async function nextOrderNumber() {
  * plus the four order-level totals. This is the ONLY place order totals are
  * calculated — never trust one sent in a request body.
  *
- * NOTE: Product model doesn't exist yet (C's module). Until it does, this
- * throws a clear error rather than silently guessing a price — a wrong total
- * on a real order is worse than a blocked request.
+ * Product is imported dynamically, which dates from when the model did not yet
+ * exist. If the import fails the request is refused rather than priced from a
+ * guess: a wrong total on an order is worse than a blocked request.
  */
 async function buildLinesAndTotals(lineInputs) {
   let Product;

@@ -11,7 +11,7 @@ import { validateBody } from '../utils/validate.js';
 
 const router = Router();
 
-// backend-plan.md §4: one 24h access token, no refresh rotation yet.
+// One 24h access token; no refresh token or rotation (docs/api-contract.md §3).
 const TOKEN_TTL = '24h';
 
 /**
@@ -129,8 +129,7 @@ router.patch('/password', requireAuth, validateBody(changePasswordSchema), async
     // Existing access tokens stay valid until they expire — they carry no
     // password state and nothing revokes them. A password change that does not
     // sign out the thief who prompted it is half a control; the other half
-    // needs a token version or a denylist, neither of which exists yet
-    // (backend-plan.md §4 puts refresh rotation out of scope).
+    // needs a token version or a denylist, neither of which exists yet.
     await user.populate('roleId');
 
     res.json({ data: user });

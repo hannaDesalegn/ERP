@@ -1,11 +1,11 @@
 /**
- * Audit logging middleware — added by C with the team's agreement.
+ * Audit logging middleware.
  *
  * WHY THIS IS MIDDLEWARE RATHER THAN A CALL IN EVERY ROUTE
  *
  * The obvious implementation is a logAudit() call inside each write handler.
  * That would capture the prior state, which this cannot, but it would mean
- * editing roughly thirty handlers spread across all three owners' route files,
+ * editing roughly thirty handlers spread across every route file,
  * and an audit log that depends on thirty separate remembered calls fails the
  * first time somebody adds a route and forgets one. A log with holes in it is
  * arguably worse than none, because it is trusted.
@@ -13,7 +13,7 @@
  * Mounting once in front of the routers means every state-changing request is
  * recorded, including routes that do not exist yet. The trade is that this
  * layer cannot see the prior state of a record, only the request and the
- * outcome. That limitation is written into the model and the handover.
+ * outcome. That limitation is documented in the model.
  *
  * Only mutations are recorded. Logging reads would bury the interesting
  * entries under thousands of list requests.
@@ -139,7 +139,7 @@ export function auditLog(req, res, next) {
 
     // Fire and forget. The response has already been sent, and a failure to
     // write the audit entry must not turn a successful request into an error
-    // for the user. It is logged for us instead.
+    // for the user. It is logged server-side instead.
     AuditLog.create(entry).catch((error) => {
       console.error('Audit log write failed:', error.message);
     });

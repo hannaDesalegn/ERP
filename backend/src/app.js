@@ -10,13 +10,13 @@ import userRoutes from './routes/users.js';
 import orderRoutes from './routes/orders.js';
 import invoiceRoutes from './routes/invoices.js';
 
-// C's routes — products, suppliers, purchase orders.
+// Operations routes — products, suppliers, purchase orders.
 import productRoutes from './routes/products.js';
 import purchaseOrderRoutes from './routes/purchaseOrders.js';
 import supplierRoutes from './routes/suppliers.js';
 
-// Added by C ahead of the external security review. See each file for why, and
-// for the limits of what they do.
+// Security middleware. See each file for why, and for the limits of what
+// they do.
 import { auditLog } from './middleware/auditLog.js';
 import { loginRateLimit } from './middleware/rateLimit.js';
 import { securityHeaders } from './middleware/securityHeaders.js';
@@ -35,12 +35,12 @@ app.set('trust proxy', 1);
 app.use(securityHeaders);
 
 // Exact origin, never "*" — see security-notes.md §4. Credentials stay on even
-// though the token is a Bearer header today (backend-plan.md §4 puts refresh
-// cookies out of scope), so the contract's cookie flow works if it ever lands.
+// though authentication is a Bearer header and no cookie is set today, so a
+// cookie-based flow would work if one is ever added.
 app.use(cors({ origin: process.env.CORS_ORIGIN, credentials: true }));
 app.use(express.json());
 
-// Temporary — confirms the server is up before any real routes exist.
+// Liveness check — confirms the server is up.
 app.get('/api/health', (req, res) => {
   res.json({ data: { ok: true } });
 });
@@ -62,7 +62,7 @@ app.use('/api/invoices', invoiceRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/customers',customerRoutes);
 
-// C — Operations.
+// Operations.
 app.use('/api/products', productRoutes);
 app.use('/api/suppliers', supplierRoutes);
 app.use('/api/purchase-orders', purchaseOrderRoutes);

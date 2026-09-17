@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-// Supplier — C owns this model. Mirrors docs/entities.md § Supplier.
+// Supplier. Mirrors docs/entities.md § Supplier.
 const addressSchema = new mongoose.Schema(
   {
     line1: { type: String, default: null },

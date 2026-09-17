@@ -1,13 +1,11 @@
 /**
- * Response security headers — added by C ahead of the external security review.
+ * Response security headers.
  *
- * docs/backend-plan.md §7 put these out of scope for the build, and
- * docs/security-notes.md §4 lists them as a backend requirement for whoever
- * takes the project further. That is now us.
+ * docs/security-notes.md §4 lists these as a backend requirement.
  *
  * Hand-written rather than adding helmet, for the same reason as the rate
- * limiter: the README requires agreement before a dependency lands in shared
- * code, and this is a handful of static headers.
+ * limiter: new dependencies in shared code require review, and this is a
+ * handful of static headers.
  *
  * SCOPE NOTE: this API returns JSON, never HTML, so the headers that matter
  * most here are the ones that stop a browser guessing a content type or framing

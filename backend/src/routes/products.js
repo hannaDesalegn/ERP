@@ -1,11 +1,11 @@
-// Product routes — C owns this file.
+// Product routes.
 //
 // ROUTE ORDER MATTERS, exactly as it does in the MSW handlers: Express matches
 // top to bottom, so the literal /categories must be declared before /:id or
 // "categories" is read as an id and the endpoint is unreachable.
 //
-// Every route carries requirePermission, including the GETs — backend-plan.md
-// §6 item 2, deny by default.
+// Every route carries requirePermission, including the GETs — deny by
+// default (docs/security-notes.md §4).
 //
 // On object-level checks (§6 item 3): entities.md gives Product no owner or
 // tenant field, so there is no "may this user see *this* product?" question to
@@ -93,7 +93,7 @@ router.get(
 );
 
 // Not in api-contract.md, but the product form cannot work without a way to get
-// categories in. Raised in the group chat; the contract gets the row if it stays.
+// categories in. The contract gets the row if it stays.
 router.post(
   '/categories',
   requirePermission('products.create'),
@@ -239,7 +239,7 @@ router.delete(
     try {
       const product = await loadProduct(req.params.id);
 
-      // Soft deletes are out of scope (backend-plan.md §7), so this is a real
+      // There is no soft delete, so this is a real
       // delete — which makes it worth refusing when it would orphan a live
       // reference. A product on an order that has not finished is exactly that.
       const openLine = await PurchaseOrder.exists({

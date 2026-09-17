@@ -1,6 +1,6 @@
-// Field-level building blocks shared by C's schemas (products, suppliers,
-// purchase orders). Ported from each frontend module's schema.js as
-// backend-plan.md §3 requires — the rules mirror the frontend rather than
+// Field-level building blocks shared by the operations schemas (products, suppliers,
+// purchase orders). Ported from each frontend module's schema.js — the rules
+// mirror the frontend rather than
 // being reinvented, so the two cannot drift.
 //
 // Note on the port: the frontend is on Zod 3 and this is Zod 4. The frontend's

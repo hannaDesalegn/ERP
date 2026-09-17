@@ -5,12 +5,12 @@
  * fills the operations side (categories, products, suppliers, purchase orders,
  * stock adjustments). Nothing filled the commercial side, so customers, sales
  * orders and invoices were empty collections on a deployed database. This file
- * closes that gap, so that the security team has records to test against rather
- * than three endpoints that return an empty page.
+ * closes that gap, so that those modules have records to exercise rather than
+ * three endpoints that return an empty page.
  *
  * Run it last, because it needs both of the others:
- *   npm run seed             # roles and users            (A)
- *   npm run seed:operations  # products and suppliers     (C)
+ *   npm run seed             # roles and users
+ *   npm run seed:operations  # products and suppliers
  *   npm run seed:commercial  # this file
  *
  * ── Two rules this file follows, and why they matter for testing ─────────────
@@ -308,9 +308,8 @@ function expandPlan(plan) {
 
 /**
  * The three seeded accounts, so that records are not all attributed to the
- * administrator. Section 4 of the pentest handover asks the team to look at
- * object-level access, and that is untestable if every record in the database
- * has the same owner — there is nothing to reach across to.
+ * administrator. Object-level access is untestable if every record in the
+ * database has the same owner — there is nothing to reach across to.
  */
 async function resolveUsers() {
   const users = await User.find({
@@ -463,7 +462,7 @@ async function seedOrders(customers, products, users) {
  * they are testing. Only undiscounted orders are invoiced here, which means an
  * invoice whose grandTotal differs from its sales order IS worth reporting.
  *
- * The gap itself is written up in docs/pentest-handover.md rather than hidden.
+ * The gap itself is a known limitation of the Invoice entity.
  */
 function eligibleForInvoice(order) {
   // Approved as well as fulfilled: an invoice is raised once the order is
@@ -573,7 +572,7 @@ async function seedInvoices(customers, products, users, orders) {
  * have been issued and not yet settled. A draft invoice has not been sent and a
  * void one has been withdrawn, so neither counts.
  *
- * Worth knowing, and stated in the handover: no route maintains this field. It
+ * Worth knowing: no route maintains this field. It
  * is set to 0 on create and never touched again, so recording a payment does
  * not move it. Computing it here gives the figure on a customer a meaning that
  * agrees with their invoice list at the moment of seeding, and nothing keeps
