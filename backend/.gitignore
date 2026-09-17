@@ -1,5 +1,7 @@
 node_modules/
 
-# .env.example is committed, .env never is
+# .env.example is committed, every other .env file never is.
+# The wildcard matters: `.env` alone does not match `.env.production`.
 .env
-.env.local
+.env.*
+!.env.example
