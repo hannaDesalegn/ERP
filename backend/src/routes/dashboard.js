@@ -206,16 +206,27 @@ router.get(
         User.countDocuments({ status: 'active' }),
       ]);
 
+      const counts = {
+        activeCustomers: { value: activeCustomers },
+        activeUsers: { value: activeUsers },
+      };
+
+      // Money is reports.view territory. dashboard.view alone (Staff) gets the
+      // counts and nothing else: no revenue, balances or activity feed with
+      // amounts and names in it. Decided here, on the server, so editing the
+      // login response in a proxy shows a staff member nothing new
+      // (pentest vuln-3, information-disclosure impact).
+      const permissions = req.user.roleId?.permissions ?? [];
+      if (!permissions.includes('reports.view')) {
+        return res.json({ data: { kpis: counts, recentActivity: [] } });
+      }
+
       // Spread so the static block above stays a constant: handing out the same
       // object every request would let one caller's mutation leak into the next.
       res.json({
         data: {
           ...summary,
-          kpis: {
-            ...summary.kpis,
-            activeCustomers: { value: activeCustomers },
-            activeUsers: { value: activeUsers },
-          },
+          kpis: { ...summary.kpis, ...counts },
         },
       });
     } catch (err) {

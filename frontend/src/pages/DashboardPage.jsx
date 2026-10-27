@@ -88,58 +88,74 @@ export function DashboardPage() {
       title: 'Revenue this month',
       icon: Banknote,
       value: formatMoney(
-        kpis?.revenueThisMonth.value,
-        kpis?.revenueThisMonth.currency,
+        kpis?.revenueThisMonth?.value,
+        kpis?.revenueThisMonth?.currency,
       ),
-      trend: kpis?.revenueThisMonth.trend,
+      trend: kpis?.revenueThisMonth?.trend,
     },
     {
       key: 'orders',
       title: 'Orders this month',
       icon: ShoppingCart,
-      value: formatNumber(kpis?.ordersThisMonth.value),
-      trend: kpis?.ordersThisMonth.trend,
+      value: formatNumber(kpis?.ordersThisMonth?.value),
+      trend: kpis?.ordersThisMonth?.trend,
     },
     {
       key: 'customers',
       title: 'Active customers',
       icon: Users,
-      value: formatNumber(kpis?.activeCustomers.value),
-      trend: kpis?.activeCustomers.trend,
+      value: formatNumber(kpis?.activeCustomers?.value),
+      trend: kpis?.activeCustomers?.trend,
     },
     {
       key: 'aov',
       title: 'Average order value',
       icon: Receipt,
       value: formatMoney(
-        kpis?.averageOrderValue.value,
-        kpis?.averageOrderValue.currency,
+        kpis?.averageOrderValue?.value,
+        kpis?.averageOrderValue?.currency,
       ),
-      trend: kpis?.averageOrderValue.trend,
+      trend: kpis?.averageOrderValue?.trend,
     },
     {
       key: 'outstanding',
       title: 'Outstanding balance',
       icon: Wallet,
       value: formatMoney(
-        kpis?.outstandingBalance.value,
-        kpis?.outstandingBalance.currency,
+        kpis?.outstandingBalance?.value,
+        kpis?.outstandingBalance?.currency,
       ),
-      trend: kpis?.outstandingBalance.trend,
+      trend: kpis?.outstandingBalance?.trend,
     },
     {
       key: 'overdue',
       title: 'Overdue invoices',
       icon: FileWarning,
       value: formatMoney(
-        kpis?.overdueInvoices.value,
-        kpis?.overdueInvoices.currency,
+        kpis?.overdueInvoices?.value,
+        kpis?.overdueInvoices?.currency,
       ),
-      trend: kpis?.overdueInvoices.trend,
+      trend: kpis?.overdueInvoices?.trend,
     },
   ];
 
   const activity = data?.recentActivity ?? [];
+
+  // The server leaves the money figures out for anyone without reports.view.
+  // While loading, or on error, every card shows (skeleton or em dash); once
+  // data is in, only the figures the server actually sent get a card.
+  const kpiKeyByCard = {
+    revenue: 'revenueThisMonth',
+    orders: 'ordersThisMonth',
+    customers: 'activeCustomers',
+    aov: 'averageOrderValue',
+    outstanding: 'outstandingBalance',
+    overdue: 'overdueInvoices',
+  };
+  const visibleCards = kpis
+    ? cards.filter((card) => kpis[kpiKeyByCard[card.key]] !== undefined)
+    : cards;
+  const showActivity = !kpis || 'revenueThisMonth' in kpis;
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-4 p-6">
@@ -151,7 +167,7 @@ export function DashboardPage() {
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {cards.map((card) => (
+        {visibleCards.map((card) => (
           <KPICard
             key={card.key}
             title={card.title}
@@ -165,24 +181,26 @@ export function DashboardPage() {
         ))}
       </div>
 
-      <section className="flex flex-col gap-3">
-        <h2 className="text-sm font-semibold text-text">Recent activity</h2>
+      {showActivity && (
+        <section className="flex flex-col gap-3">
+          <h2 className="text-sm font-semibold text-text">Recent activity</h2>
 
-        {/* Pagination props are static: this feed is one short server-decided
+          {/* Pagination props are static: this feed is one short server-decided
             slice, so the footer reads "1–8 of 8" and both arrows stay disabled
             rather than offering a page 2 that does not exist. */}
-        <DataTable
-          columns={columns}
-          data={activity}
-          loading={isLoading}
-          error={error}
-          page={1}
-          perPage={10}
-          total={activity.length}
-          rowKey="id"
-          density="compact"
-        />
-      </section>
+          <DataTable
+            columns={columns}
+            data={activity}
+            loading={isLoading}
+            error={error}
+            page={1}
+            perPage={10}
+            total={activity.length}
+            rowKey="id"
+            density="compact"
+          />
+        </section>
+      )}
     </div>
   );
 }

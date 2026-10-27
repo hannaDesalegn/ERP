@@ -15,6 +15,8 @@
  *
  * > Everything here shapes the UI. None of it secures anything. The server
  * > must independently enforce every permission — docs/security-notes.md §2.
+ * > Someone who controls their own browser can always edit what it renders;
+ * > what they cannot do is make the API answer, and every endpoint checks.
  */
 
 import {
@@ -62,9 +64,33 @@ export function AuthProvider({ children }) {
     // the envelope untouched — other callers rely on that — so unwrap here.
     const { data } = await apiClient.post('/auth/login', { email, password });
 
+    // The login body is used for the token only. Who the user is and what
+    // they may do comes from GET /auth/me, the dedicated endpoint the server
+    // answers from the stored account (pentest vuln-3). The token is pushed
+    // to apiClient directly because the state effect above has not run yet.
+    setAccessToken(data.accessToken);
+    let me;
+    try {
+      ({ data: me } = await apiClient.get('/auth/me'));
+    } catch (error) {
+      setAccessToken(null);
+      throw error;
+    }
+
     setToken(data.accessToken);
-    setUser(data.user);
-    return data.user;
+    setUser(me);
+    return me;
+  }, []);
+
+  /**
+   * Swaps in a token the server issued mid-session. A password change revokes
+   * every older token, the caller's included, and returns a fresh one.
+   *
+   * @param {string} nextToken
+   */
+  const replaceToken = useCallback((nextToken) => {
+    setAccessToken(nextToken);
+    setToken(nextToken);
   }, []);
 
   /**
@@ -92,11 +118,12 @@ export function AuthProvider({ children }) {
       isLoading,
       login,
       logout,
+      replaceToken,
       permissions,
       /** @param {string} permission @returns {boolean} */
       can: (permission) => !permission || permissions.includes(permission),
     };
-  }, [user, isLoading, login, logout]);
+  }, [user, isLoading, login, logout, replaceToken]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
