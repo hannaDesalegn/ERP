@@ -12,6 +12,7 @@ import { validateBody } from '../utils/validate.js';
 import { paginate } from '../utils/paginate.js';
 import { ApiError } from '../middleware/error.js';
 import { Customer } from '../models/Customer.js';
+import { nextNumber } from '../utils/sequence.js';
 
 const router = express.Router();
 
@@ -60,10 +61,16 @@ const customerUpdateSchema = customerCreateSchema.partial();
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 
-/** CUS-0001, CUS-0002, ... — same shape as the frontend mock, real this time. */
-async function nextCustomerCode() {
-  const count = await Customer.countDocuments();
-  return `CUS-${String(count + 1).padStart(4, '0')}`;
+/**
+ * CUS-0001, CUS-0002, ... — shared with products, suppliers and purchase
+ * orders, so all four share one known limitation (see sequence.js) instead
+ * of customers having its own copy of it. Concurrent creates can still race
+ * for a number; the unique index on `code` turns that into a failed request,
+ * never two CUS-0042s, and writeGuard now refuses the replay burst that
+ * produced the race in the pentest.
+ */
+function nextCustomerCode() {
+  return nextNumber(Customer, 'code', (n) => `CUS-${n}`);
 }
 
 // ── Routes ────────────────────────────────────────────────────────────────

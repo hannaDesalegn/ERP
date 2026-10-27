@@ -62,17 +62,25 @@ function buildUrl(path, params) {
 
 /**
  * @param {string} path
- * @param {{ method?: string, body?: unknown, params?: Record<string, unknown> }} [options]
+ * @param {{ method?: string, body?: unknown, params?: Record<string, unknown>, idempotencyKey?: string }} [options]
  * @returns {Promise<{ data: unknown, meta?: object }|null>} null for 204
  */
 async function request(path, options = {}) {
-  const { method = 'GET', body, params } = options;
+  const {
+    method = 'GET',
+    body,
+    params,
+    idempotencyKey = crypto.randomUUID(),
+  } = options;
 
   const response = await fetch(buildUrl(path, params), {
     method,
     headers: {
       ...(body ? { 'Content-Type': 'application/json' } : {}),
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      // One key per logical create. The server replays the stored response for
+      // a repeated key instead of creating a second record (pentest vuln-1).
+      ...(method === 'POST' ? { 'Idempotency-Key': idempotencyKey } : {}),
     },
     // The refresh token is an httpOnly cookie the JS never sees.
     credentials: 'include',
@@ -113,7 +121,12 @@ async function request(path, options = {}) {
 export const apiClient = {
   /** @returns {Promise<{ data: unknown, meta?: object }>} */
   get: (path, params) => request(path, { params }),
-  post: (path, body) => request(path, { method: 'POST', body }),
+  /**
+   * Pass the same `idempotencyKey` when retrying the same submission, so a
+   * retry after a dropped response cannot create the record twice.
+   */
+  post: (path, body, { idempotencyKey } = {}) =>
+    request(path, { method: 'POST', body, idempotencyKey }),
   patch: (path, body) => request(path, { method: 'PATCH', body }),
   delete: (path) => request(path, { method: 'DELETE' }),
 };

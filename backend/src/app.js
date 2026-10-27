@@ -20,6 +20,7 @@ import supplierRoutes from './routes/suppliers.js';
 import { auditLog } from './middleware/auditLog.js';
 import { loginRateLimit } from './middleware/rateLimit.js';
 import { securityHeaders } from './middleware/securityHeaders.js';
+import { writeGuard } from './middleware/writeGuard.js';
 import auditRoutes from './routes/audit.js';
 
 const app = express();
@@ -49,6 +50,11 @@ app.get('/api/health', (req, res) => {
 // rather than inside routes/auth.js so that file is untouched; it must sit
 // after express.json(), because it reads the email from the parsed body.
 app.use('/api/auth/login', loginRateLimit);
+
+// Throttles every other write and refuses replays and duplicate submissions
+// (pentest finding vuln-1). Ahead of the audit log so a refused flood does not
+// also flood the audit trail.
+app.use(writeGuard);
 
 // Records every state-changing request once its response is sent. Mounted in
 // front of the routers rather than called inside each handler, so a route added
