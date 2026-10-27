@@ -284,7 +284,11 @@ a deadline:
 
 - **The frontend test suite does not pass.** See [Tests and checks](#tests-and-checks).
 - **No refresh token rotation.** A single JWT valid for 24 hours. Signing out
-  clears client state, but the token remains valid until it expires.
+  clears client state, but the token remains valid until it expires. A password
+  change does revoke all earlier tokens.
+- **Write throttling is per process.** `writeGuard` and the login limiter keep
+  their counters in memory, so a restart clears them and a second instance
+  keeps its own. Redis would be the shared store.
 - **Deletes are permanent.** There is no soft delete or restore.
 - **The audit log records the request and the outcome, not the prior state** of
   the record, so it shows that a change happened but not what the record looked

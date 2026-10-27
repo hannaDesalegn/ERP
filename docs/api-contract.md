@@ -117,15 +117,18 @@ Module-specific filters belong to their module:
 ```
 POST   /api/auth/login      { email, password }               → 200 { data: { user, accessToken } }
 GET    /api/auth/me                                            → 200 { data: user }
-PATCH  /api/auth/password   { currentPassword, newPassword }   → 200 { data: user }
+PATCH  /api/auth/password   { currentPassword, newPassword }   → 200 { data: { user, accessToken } }
 ```
 
 **Bearer token.** `accessToken` is a JWT valid for 24 hours. Send it on every
 other request as `Authorization: Bearer <accessToken>`.
 
 - The API sets **no cookie**, issues **no refresh token**, and has **no logout
-  or revocation endpoint**. A token stays valid until it expires, including
-  after a password change.
+  endpoint**. A token stays valid until it expires, **except** that a password
+  change revokes every token issued before it: each token carries a `ver`
+  claim, and `requireAuth` rejects any `ver` older than the account's
+  `tokenVersion`. The password-change response carries a fresh token for the
+  device that made the change.
 - The user is reloaded on every request, so a suspended account or a changed
   role takes effect immediately rather than when the token expires.
 - Because credentials travel in a header rather than a cookie, a browser does
@@ -142,6 +145,25 @@ account — there is no id in the path or body. The current password must be
 correct (401 otherwise). The new password must be at least 8 characters, no more
 than 72 bytes, and not on the common-password list (422 otherwise). An
 administrator cannot set another user's password through `PATCH /api/users/:id`.
+A successful change signs the account out of every other session.
+
+**Write limits and idempotency.** Every `POST`, `PUT`, `PATCH` and `DELETE`
+except login passes through `writeGuard`:
+
+- At most 30 writes per minute per account, 10 of them creates (`POST`), and
+  120 per minute per client address. Over the limit: `429 RATE_LIMITED` with
+  `Retry-After`.
+- An optional `Idempotency-Key` header (1 to 255 characters). A repeat of a key
+  the same account has used in the last 24 hours gets the original response
+  replayed with `Idempotent-Replayed: true`; a repeat while the first is still
+  running gets `409 CONFLICT`. The frontend sends a fresh key on every `POST`.
+- A `POST` with the same body to the same path as one the same account made in
+  the last minute gets `409 CONFLICT`, with or without a key. A rejected
+  request (4xx/5xx) does not count, so a corrected retry is never blocked.
+
+**Dashboard.** `GET /api/dashboard/summary` needs `dashboard.view`. The money
+figures and the activity feed are included only for `reports.view`; without it
+the response holds the two counts and an empty `recentActivity`.
 
 **In the frontend,** the token is held in memory in `AuthProvider` — never
 `localStorage` or `sessionStorage` — so reloading the page signs the user out.
