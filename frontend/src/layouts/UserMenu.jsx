@@ -2,10 +2,10 @@
  * User menu.
  *
  * Reads the signed-in user from AuthProvider and owns the only Log out control
- * in the app.
+ * in the app, plus the link to the user's own Account page.
  */
 
-import { LogOut } from 'lucide-react';
+import { LogOut, UserRound } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -77,6 +77,22 @@ export function UserMenu() {
             {/* roleName is the label; roleId holds the slug the guards match. */}
             <p className="mt-0.5 text-xs text-text-muted">{user.roleName}</p>
           </div>
+
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              setOpen(false);
+              navigate('/account');
+            }}
+            className={cn(
+              'flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm text-text',
+              'hover:bg-bg focus-visible:bg-bg focus-visible:outline-none',
+            )}
+          >
+            <UserRound size={14} />
+            Account
+          </button>
 
           <button
             type="button"

@@ -10,8 +10,10 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 import { ProtectedRoute } from '@/auth/ProtectedRoute';
+import { RequirePermission } from '@/auth/RequirePermission';
 import { RequireRole } from '@/auth/RequireRole';
 import { AppShell } from '@/layouts/AppShell';
+import { AccountPage } from '@/pages/AccountPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { ForbiddenPage } from '@/pages/ForbiddenPage';
 import { KitchenSinkPage } from '@/pages/KitchenSinkPage';
@@ -51,11 +53,19 @@ export const router = createBrowserRouter([
         ),
       },
 
-      // Not RequireRole. Everyone signed in may reach Settings, because
-      // everyone has a password to change; the page itself shows only the
-      // sections the user's permissions allow, so a manager or staff member
-      // sees the password form and nothing else. Users above stays admin-only.
-      { path: '/settings', element: <SettingsPage /> },
+      // Company settings follow their endpoint: settings.view, admin only.
+      {
+        path: '/settings',
+        element: (
+          <RequirePermission permission="settings.view">
+            <SettingsPage />
+          </RequirePermission>
+        ),
+      },
+
+      // The signed-in user's own account. Everyone has a password to change,
+      // and the endpoint behind it acts only on the caller's own account.
+      { path: '/account', element: <AccountPage /> },
 
       // Every module's routes, collected by the registry.
       ...moduleRoutes,

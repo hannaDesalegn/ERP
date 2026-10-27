@@ -11,6 +11,18 @@ import { validateBody } from '../utils/validate.js';
 
 const router = Router();
 
+/**
+ * The only claims are the subject and `ver`, the account's tokenVersion.
+ * requireAuth compares `ver` with the stored value, so bumping tokenVersion
+ * revokes every token issued before the bump.
+ */
+function issueToken(user) {
+  return jwt.sign({ ver: user.tokenVersion ?? 0 }, process.env.JWT_SECRET, {
+    subject: user.id,
+    expiresIn: TOKEN_TTL,
+  });
+}
+
 // One 24h access token; no refresh token or rotation (docs/api-contract.md §3).
 const TOKEN_TTL = '24h';
 
@@ -74,12 +86,7 @@ router.post('/login', validateBody(loginSchema), async (req, res, next) => {
 
     // Claims stay out of the token: requireAuth reloads the user every request,
     // so a copy of the role here would only be a copy that can go stale.
-    const accessToken = jwt.sign({}, process.env.JWT_SECRET, {
-      subject: user.id,
-      expiresIn: TOKEN_TTL,
-    });
-
-    res.json({ data: { user, accessToken } });
+    res.json({ data: { user, accessToken: issueToken(user) } });
   } catch (err) {
     next(err);
   }
@@ -124,15 +131,16 @@ router.patch('/password', requireAuth, validateBody(changePasswordSchema), async
     // Assigned in plaintext; the pre-save hook hashes it because this time the
     // password field really has been modified.
     user.password = req.body.newPassword;
+    // Revokes every token issued before this change, on every device, so a
+    // password change also signs out whoever prompted it.
+    user.tokenVersion = (user.tokenVersion ?? 0) + 1;
     await user.save();
 
-    // Existing access tokens stay valid until they expire — they carry no
-    // password state and nothing revokes them. A password change that does not
-    // sign out the thief who prompted it is half a control; the other half
-    // needs a token version or a denylist, neither of which exists yet.
     await user.populate('roleId');
 
-    res.json({ data: user });
+    // The caller's own token was just revoked with the rest, so it gets a
+    // fresh one and stays signed in on this device only.
+    res.json({ data: { user, accessToken: issueToken(user) } });
   } catch (err) {
     next(err);
   }

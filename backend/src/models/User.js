@@ -22,6 +22,10 @@ const userSchema = new mongoose.Schema(
     roleId: { type: mongoose.Schema.Types.ObjectId, ref: 'Role', required: true },
     status: { type: String, enum: ['active', 'invited', 'suspended'], default: 'invited' },
     lastLoginAt: { type: Date, default: null },
+    // Stamped into every access token as `ver`. Bumping it signs the account
+    // out everywhere: requireAuth rejects any token carrying an older number.
+    // Bumped on password change (pentest vuln-2, account-takeover impact).
+    tokenVersion: { type: Number, default: 0 },
   },
   { timestamps: true },
 );
@@ -61,6 +65,7 @@ userSchema.set('toJSON', {
 
     delete ret._id;
     delete ret.password; // belt and braces; select:false already omits it
+    delete ret.tokenVersion; // session bookkeeping, not part of the User shape
     return ret;
   },
 });

@@ -1,12 +1,12 @@
 /**
- * Settings.
+ * Settings — company details and record defaults. Requires settings.view,
+ * which only administrators hold; the route is guarded on it and, more to the
+ * point, GET and PATCH /api/settings refuse without it.
  *
- * Reachable by anyone signed in, unlike Users: every account has a password to
- * change, and that form lives here. The company, invoicing and inventory
- * sections are gated on settings.edit instead, so a manager or staff member
- * opening this page sees the password form and nothing else. The route used to
- * carry RequireRole admin, which made the password form unreachable for exactly
- * the people most likely to need it.
+ * The password form used to live here, which put every signed-in user on a
+ * page called Settings. The September 2026 penetration test read that as staff
+ * reaching an admin page (vuln-2). The form has moved to AccountPage, and this
+ * page is now admin-only in the UI as well as on the server.
  *
  * The first real use of FormSection, FormRow and FormActions: three sections,
  * fields paired into rows, one action bar at the foot. If this page reads as
@@ -51,12 +51,6 @@ async function fetchSettings() {
 
 async function updateSettings(body) {
   const { data } = await apiClient.patch(RESOURCE, body);
-  return data;
-}
-
-/** Own account only — the endpoint takes the user from the token, not a body. */
-async function changePassword(body) {
-  const { data } = await apiClient.patch('/auth/password', body);
   return data;
 }
 
@@ -318,99 +312,10 @@ function SettingsForm({ settings }) {
   );
 }
 
-/**
- * Mirrors the server's rule: length only, no composition requirements. The
- * server additionally refuses a short list of common passwords — not duplicated
- * here, because a blocklist kept in two places is one that disagrees with
- * itself. That rejection arrives as a 422 on `newPassword` and lands on the
- * input like any other field error.
- */
-const passwordSchema = z.object({
-  currentPassword: z.string().min(1, 'Enter your current password.'),
-  newPassword: z.string().min(8, 'Use at least 8 characters.'),
-});
-
-/**
- * Change password — every account has one, so this section has no permission
- * gate. It is its own form rather than part of the settings form: a different
- * endpoint, a different resource, and saving one must not save the other.
- */
-function ChangePasswordSection() {
-  const {
-    register,
-    handleSubmit,
-    reset,
-    setError,
-    formState: { errors },
-  } = useForm({
-    resolver: zodResolver(passwordSchema),
-    defaultValues: { currentPassword: '', newPassword: '' },
-  });
-
-  const save = useMutation({
-    mutationFn: changePassword,
-    onSuccess: () => {
-      // Cleared rather than left filled — a password sitting in a form after
-      // it has been saved is one shoulder-surf away from being read back.
-      reset({ currentPassword: '', newPassword: '' });
-      toast.success('Password changed');
-    },
-    onError: (error) => {
-      if (error.fields) {
-        Object.entries(error.fields).forEach(([name, message]) =>
-          setError(name, { message }),
-        );
-        return;
-      }
-      // A wrong current password is a 401 with no `fields`. It belongs on the
-      // input that was wrong rather than in a toast that does not say which of
-      // the two boxes to fix.
-      if (error.status === 401) {
-        setError('currentPassword', { message: error.message });
-        return;
-      }
-      toast.error('Could not change password', { description: error.message });
-    },
-  });
-
-  return (
-    <form
-      onSubmit={handleSubmit((values) => save.mutate(values))}
-      className="flex flex-col gap-6"
-    >
-      <FormSection
-        title="Change password"
-        description="Changes only your own sign-in password."
-      >
-        <FormField
-          label="Current password"
-          type="password"
-          required
-          autoComplete="current-password"
-          error={errors.currentPassword?.message}
-          {...register('currentPassword')}
-        />
-
-        <FormField
-          label="New password"
-          type="password"
-          required
-          autoComplete="new-password"
-          hint="At least 8 characters. Length matters more than symbols — a short phrase works well."
-          error={errors.newPassword?.message}
-          {...register('newPassword')}
-        />
-      </FormSection>
-
-      <FormActions submitLabel="Change password" loading={save.isPending} />
-    </form>
-  );
-}
-
 export function SettingsPage() {
-  // The endpoint requires settings.view and answers 403 without it. Firing it
-  // for a manager or staff member would put an error banner above a password
-  // form that works perfectly well, so the request is not made at all.
+  // The endpoint requires settings.view and answers 403 without it. The route
+  // is already guarded on the same permission; this keeps the request from
+  // firing if the page is ever mounted some other way.
   const canViewSettings = useCan('settings.view');
 
   const { data, isLoading, error } = useQuery({
@@ -447,9 +352,6 @@ export function SettingsPage() {
         {/* Mounted only once data exists, so defaultValues are the real values. */}
         {data && <SettingsForm settings={data} />}
       </Can>
-
-      {/* No gate — everyone signed in has a password of their own. */}
-      <ChangePasswordSection />
     </div>
   );
 }

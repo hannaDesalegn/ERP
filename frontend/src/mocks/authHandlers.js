@@ -396,6 +396,11 @@ export const authHandlers = [
     user.password = newPassword;
     user.updatedAt = new Date().toISOString();
 
-    return HttpResponse.json({ data: publicUser(user) });
+    // Same shape as the real server, which revokes older tokens and hands the
+    // caller a fresh one. Mock tokens carry no version, so the same one is
+    // returned.
+    return HttpResponse.json({
+      data: { user: publicUser(user), accessToken: tokenFor(user) },
+    });
   }),
 ];

@@ -28,6 +28,13 @@ export async function requireAuth(req, res, next) {
       throw ApiError.unauthenticated('Account is not active.');
     }
 
+    // A token issued before the last password change is no longer valid.
+    // Tokens minted before this field existed carry no `ver`; they count as 0,
+    // which matches every account that has not changed its password since.
+    if ((payload.ver ?? 0) !== (user.tokenVersion ?? 0)) {
+      throw ApiError.unauthenticated('Token is invalid or has expired.');
+    }
+
     req.user = user;
     next();
   } catch (err) {
